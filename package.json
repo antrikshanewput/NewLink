@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "common/*",
-    "services/*"
+    "services/*",
+    "sandbox/*"
   ],
   "dependencies": {
     "@nestjs/microservices": "^10.4.6"

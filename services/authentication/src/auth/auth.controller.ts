@@ -1,5 +1,6 @@
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, BadRequestException, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('authentication')
 export class AuthController {
@@ -11,8 +12,13 @@ export class AuthController {
     const authValue = body[authField];
     const { password } = body;
 
-    if (!authValue || !password) {
-      throw new BadRequestException('Missing credentials');
+    // Collect missing fields
+    const missingFields: string[] = [];
+    if (!authValue) missingFields.push(authField);
+    if (!password) missingFields.push('password');
+
+    if (missingFields.length > 0) {
+      throw new BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
     }
 
     const user = await this.authService.validateUser(authValue, password);
@@ -25,6 +31,20 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: Record<string, any>) {
+    // List required fields for registration
+    const requiredFields = this.authService.options.registrationFields;
+    const missingFields = requiredFields.filter(field => !body[field]);
+
+    if (missingFields.length > 0) {
+      throw new BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
+    }
+
     return this.authService.register(body);
+  }
+
+  @Get('check')
+  @UseGuards(JwtAuthGuard)
+  async check(@Req() req: any) {
+    return req.user;
   }
 }

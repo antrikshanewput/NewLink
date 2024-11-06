@@ -5,7 +5,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './user.entity';
 interface AuthModuleOptions {
   authenticationField: string;
   registrationFields: string[];
@@ -15,13 +16,6 @@ interface AuthModuleOptions {
 @Module({})
 export class AuthModule {
   static register(options: AuthModuleOptions): DynamicModule {
-    const authProviders: Provider[] = [
-      {
-        provide: 'AUTH_OPTIONS',
-        useValue: options,
-      },
-    ];
-
     return {
       module: AuthModule,
       imports: [
@@ -34,8 +28,15 @@ export class AuthModule {
             signOptions: { expiresIn: configService.get<string>('JWT_EXPIRATION') },
           }),
         }),
+        TypeOrmModule.forFeature([User]),
       ],
-      providers: [...authProviders, AuthService, JwtStrategy],
+      providers: [
+        {
+          provide: 'AUTH_OPTIONS',
+          useValue: options,
+        },
+        AuthService,
+        JwtStrategy],
       controllers: [AuthController],
       exports: [AuthService],
     };

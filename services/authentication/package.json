@@ -1,9 +1,13 @@
 {
   "name": "@newlink/authentication",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.7",
@@ -17,11 +21,15 @@
     "@newlink/database": "^1.0.0",
     "@newlink/rate-limiter": "^1.0.0",
     "bcrypt": "^5.1.1",
+    "express": "^4.21.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/passport-jwt": "^4.0.1"
   }
 }

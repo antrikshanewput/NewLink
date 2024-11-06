@@ -13,7 +13,6 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "declaration": true, // Ensure this is set to true
     "skipLibCheck": true
   },
   "include": [
