@@ -9,8 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const typeorm_1 = require("@nestjs/typeorm");
 const authentication_1 = require("@newlink/authentication");
+const user_entities_1 = require("./entities/user.entities");
+const user_controller_1 = require("./user.controller");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -18,27 +19,15 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
-            typeorm_1.TypeOrmModule.forRootAsync({
-                imports: [config_1.ConfigModule],
-                inject: [config_1.ConfigService],
-                useFactory: (configService) => ({
-                    type: 'postgres',
-                    host: configService.get('DB_HOST'),
-                    port: configService.get('DB_PORT'),
-                    username: configService.get('DB_USERNAME'),
-                    password: configService.get('DB_PASSWORD'),
-                    database: configService.get('DB_NAME'),
-                    entities: [authentication_1.User],
-                    synchronize: true,
-                }),
-            }),
             authentication_1.AuthModule.register({
                 authenticationField: 'email',
-                registrationFields: ['name', 'email', 'phone', 'password'],
-                encryptionStrategy: async (password) => {
-                    return password;
-                },
+                registrationFields: ['name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
+                userEntity: user_entities_1.User,
+            }, {
+                entities: [user_entities_1.User],
+                synchronize: true,
             }),
         ],
+        controllers: [user_controller_1.TestController],
     })
 ], AppModule);

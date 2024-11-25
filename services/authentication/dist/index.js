@@ -15,11 +15,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // Export the main AuthModule
-__exportStar(require("./auth/auth.module"), exports);
+__exportStar(require("./auth.module"), exports);
 // Export controllers, services, guards, and strategies if users want to access them directly
-__exportStar(require("./auth/auth.controller"), exports);
-__exportStar(require("./auth/auth.service"), exports);
-__exportStar(require("./auth/jwt-auth.guard"), exports);
-__exportStar(require("./auth/jwt.strategy"), exports);
+__exportStar(require("./controllers/auth.controller"), exports);
+__exportStar(require("./services/auth.service"), exports);
+__exportStar(require("./guards/jwt-auth.guard"), exports);
+__exportStar(require("./strategies/jwt.strategy"), exports);
+__exportStar(require("./decorator/auth.decorator"), exports);
 // Export the User entity for use in other modules or to extend the model
-__exportStar(require("./auth/user.entity"), exports);
+__exportStar(require("./entity/user.entity"), exports);

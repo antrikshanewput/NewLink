@@ -1,12 +1,13 @@
 // Export the main AuthModule
-export * from './auth/auth.module';
+export * from './auth.module';
 
 // Export controllers, services, guards, and strategies if users want to access them directly
-export * from './auth/auth.controller';
-export * from './auth/auth.service';
-export * from './auth/jwt-auth.guard';
-export * from './auth/jwt.strategy';
+export * from './controllers/auth.controller';
+export * from './services/auth.service';
+export * from './guards/jwt-auth.guard';
+export * from './strategies/jwt.strategy';
+export * from './decorator/auth.decorator';
 
 
 // Export the User entity for use in other modules or to extend the model
-export * from './auth/user.entity';
+export * from './entity/user.entity';

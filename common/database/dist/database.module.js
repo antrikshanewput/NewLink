@@ -12,7 +12,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const config_1 = require("@nestjs/config");
 let DatabaseModule = DatabaseModule_1 = class DatabaseModule {
-    static forRoot() {
+    static register(database) {
         return {
             module: DatabaseModule_1,
             imports: [
@@ -20,16 +20,20 @@ let DatabaseModule = DatabaseModule_1 = class DatabaseModule {
                 typeorm_1.TypeOrmModule.forRootAsync({
                     imports: [config_1.ConfigModule],
                     inject: [config_1.ConfigService],
-                    useFactory: (configService) => ({
-                        type: 'postgres',
-                        host: configService.get('DB_HOST'),
-                        port: configService.get('DB_PORT'),
-                        username: configService.get('DB_USERNAME'),
-                        password: configService.get('DB_PASSWORD'),
-                        database: configService.get('DB_NAME'),
-                        synchronize: configService.get('DB_SYNC', true), // For development, disable in production
-                        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-                    }),
+                    useFactory: (configService) => {
+                        var _a, _b, _c, _d;
+                        return {
+                            type: (database.type || configService.get('DB_TYPE') || 'postgres'),
+                            host: database.host || configService.get('DB_HOST') || 'localhost',
+                            port: database.port || configService.get('DB_PORT') || 5432,
+                            username: database.username || configService.get('DB_USERNAME') || 'postgres',
+                            password: database.password || configService.get('DB_PASSWORD') || 'postgres',
+                            database: database.database || configService.get('DB_NAME') || 'postgres',
+                            synchronize: (_b = (_a = database.synchronize) !== null && _a !== void 0 ? _a : configService.get('DB_SYNC')) !== null && _b !== void 0 ? _b : false,
+                            entities: database.entities || [],
+                            logging: (_d = (_c = database.logging) !== null && _c !== void 0 ? _c : configService.get('DB_LOGGING')) !== null && _d !== void 0 ? _d : false,
+                        };
+                    },
                 }),
             ],
         };

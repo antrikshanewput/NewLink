@@ -20,6 +20,7 @@
     "@newlink/cache": "^1.0.0",
     "@newlink/database": "^1.0.0",
     "@newlink/rate-limiter": "^1.0.0",
+    "argon2": "^0.41.1",
     "bcrypt": "^5.1.1",
     "express": "^4.21.1",
     "helmet": "^8.0.0",

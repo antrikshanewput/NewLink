@@ -17,7 +17,8 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "auth.module.ts"
   ],
   "exclude": [
     "node_modules"
