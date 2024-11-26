@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, BadRequestException, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { Authentication } from '../decorator/auth.decorator';
+import { Authentication } from '../decorators/auth.decorator';
 
 @Controller('authentication')
 export class AuthController {
@@ -38,11 +38,5 @@ export class AuthController {
     }
 
     return this.authService.register(body);
-  }
-
-  @Get('check')
-  @Authentication()
-  async check(@Req() req: any) {
-    return req.user;
   }
 }
