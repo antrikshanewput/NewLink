@@ -14,14 +14,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
-const auth_service_1 = require("../services/auth.service");
-const auth_decorator_1 = require("../decorator/auth.decorator");
+const authentication_service_1 = require("../services/authentication.service");
 let AuthController = class AuthController {
-    constructor(authService) {
-        this.authService = authService;
+    constructor(authenticationService) {
+        this.authenticationService = authenticationService;
     }
     async login(body) {
-        const authField = this.authService.getAuthenticationField();
+        const authField = this.authenticationService.getAuthenticationField();
         const authValue = body[authField];
         const { password } = body;
         const missingFields = [];
@@ -32,21 +31,18 @@ let AuthController = class AuthController {
         if (missingFields.length > 0) {
             throw new common_1.BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
         }
-        const user = await this.authService.validateUser(authValue, password);
+        const user = await this.authenticationService.validateUser(authValue, password);
         if (!user) {
             throw new common_1.BadRequestException('Invalid credentials');
         }
-        return this.authService.login(user);
+        return this.authenticationService.login(user);
     }
     async register(body) {
-        const missingFields = this.authService.getRegistrationFields().filter(field => !body[field]);
+        const missingFields = this.authenticationService.getRegistrationFields().filter(field => !body[field]);
         if (missingFields.length > 0) {
             throw new common_1.BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
         }
-        return this.authService.register(body);
-    }
-    async check(req) {
-        return req.user;
+        return this.authenticationService.register(body);
     }
 };
 exports.AuthController = AuthController;
@@ -64,15 +60,7 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
-__decorate([
-    (0, common_1.Get)('check'),
-    (0, auth_decorator_1.Authentication)(),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "check", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('authentication'),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __metadata("design:paramtypes", [authentication_service_1.AuthenticationService])
 ], AuthController);

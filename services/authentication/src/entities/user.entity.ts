@@ -1,22 +1,32 @@
 
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 
+import { UserTenant } from './user-tenant.entity';
 @Entity('users')
 export class BaseUser {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column()
+  first_name!: string;
+
+  @Column()
+  last_name!: string;
+
   @Column({ unique: true })
+  username!: string;
+
+  @Column()
   email!: string;
 
   @Column({ nullable: true })
   phone!: string;
 
   @Column()
-  name!: string;
+  password!: string;
 
   @Column()
-  password!: string;
+  last_login!: Date;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -26,4 +36,7 @@ export class BaseUser {
 
   @DeleteDateColumn()
   deletedAt!: Date;
+
+  @OneToMany(() => UserTenant, (userTenant) => userTenant.user)
+  userTenants!: UserTenant[];
 }

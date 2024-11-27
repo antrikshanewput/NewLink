@@ -28,21 +28,44 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var AuthModule_1;
+var AuthenticationModule_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthModule = void 0;
+exports.AuthenticationModule = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
-const auth_service_1 = require("./services/auth.service");
+const authentication_service_1 = require("./services/authentication.service");
 const auth_controller_1 = require("./controllers/auth.controller");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const user_entity_1 = require("./entities/user.entity");
-let AuthModule = AuthModule_1 = class AuthModule {
+const authentication_types_1 = require("./authentication.types");
+const feature_entity_1 = require("./entities/feature.entity");
+const role_entity_1 = require("./entities/role.entity");
+const group_entity_1 = require("./entities/group.entity");
+const tenant_entity_1 = require("./entities/tenant.entity");
+const user_tenant_entity_1 = require("./entities/user-tenant.entity");
+const authorization_service_1 = require("./services/authorization.service");
+const seeder_service_1 = require("./services/seeder.service");
+let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
     static async resolveConfig(options) {
-        options = Object.assign(Object.assign({}, options), { authenticationField: options.authenticationField || 'email', registrationFields: options.registrationFields || ['email', 'password', 'name'], userEntity: options.userEntity || user_entity_1.BaseUser });
+        const entities = [];
+        for (const entity of [user_entity_1.BaseUser, feature_entity_1.Feature, role_entity_1.Role, group_entity_1.Group, tenant_entity_1.Tenant, user_tenant_entity_1.UserTenant]) {
+            let found = false;
+            for (const options_entity of options.entities || []) {
+                if (entity.name === options_entity.name) {
+                    entities.push(options_entity);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                entities.push(entity);
+            }
+        }
+        console.log(entities);
+        options = Object.assign(Object.assign({}, options), { authenticationField: options.authenticationField || 'email', registrationFields: options.registrationFields || ['email', 'password', 'name'], entities: entities });
         if (!options.hashingStrategy && !options.hashValidation) {
             try {
                 const argon2 = await Promise.resolve().then(() => __importStar(require('argon2')));
@@ -53,9 +76,10 @@ let AuthModule = AuthModule_1 = class AuthModule {
                 throw new Error('Argon2 module is required for default encryption strategy. Please install it using "npm install argon2".');
             }
         }
+        (0, authentication_types_1.validateAuthorizationOptions)(options);
         return options;
     }
-    static async resolveDatabaseConfig(database, configService, userEntity) {
+    static async resolveDatabaseConfig(database, configService, config) {
         var _a, _b;
         return {
             type: (database.type || configService.get('AUTH_DB_TYPE') || configService.get('DB_TYPE') || 'postgres'),
@@ -64,14 +88,15 @@ let AuthModule = AuthModule_1 = class AuthModule {
             username: database.username || configService.get('AUTH_DB_USERNAME') || configService.get('DB_USERNAME') || 'postgres',
             password: database.password || configService.get('AUTH_DB_PASSWORD') || configService.get('DB_PASSWORD') || 'postgres',
             database: database.database || configService.get('AUTH_DB_NAME') || configService.get('DB_NAME') || 'postgres',
-            entities: [userEntity],
+            entities: config.entities,
             synchronize: (_b = (_a = database.synchronize) !== null && _a !== void 0 ? _a : configService.get('DB_SYNCHRONIZE')) !== null && _b !== void 0 ? _b : false,
         };
     }
     static async register(configuration, db = {}) {
         const config = await this.resolveConfig(configuration);
+        const dataSourceToken = (0, typeorm_1.getDataSourceToken)('authenticationDataSource');
         return {
-            module: AuthModule_1,
+            module: AuthenticationModule_1,
             imports: [
                 config_1.ConfigModule.forRoot(),
                 passport_1.PassportModule,
@@ -87,29 +112,35 @@ let AuthModule = AuthModule_1 = class AuthModule {
                     name: 'authenticationDataSource',
                     imports: [config_1.ConfigModule],
                     inject: [config_1.ConfigService],
-                    useFactory: async (configService) => await this.resolveDatabaseConfig(db, configService, config.userEntity),
+                    useFactory: async (configService) => await this.resolveDatabaseConfig(db, configService, config),
                 }),
-                typeorm_1.TypeOrmModule.forFeature([config.userEntity], 'authenticationDataSource'),
+                typeorm_1.TypeOrmModule.forFeature(config.entities, 'authenticationDataSource'),
             ],
             providers: [
                 {
-                    provide: 'AUTH_OPTIONS',
+                    provide: 'AUTHENTICATION_OPTIONS',
                     useValue: config,
                 },
                 {
-                    provide: 'USER_REPOSITORY',
-                    useFactory: (dataSource) => dataSource.getRepository(config.userEntity),
-                    inject: [(0, typeorm_1.getDataSourceToken)('authenticationDataSource')],
+                    provide: 'AUTHENTICATION_DATA_SOURCE',
+                    useExisting: dataSourceToken,
                 },
-                auth_service_1.AuthService,
+                authentication_service_1.AuthenticationService,
+                authorization_service_1.AuthorizationService,
+                seeder_service_1.AuthorizationSeederService,
                 jwt_strategy_1.JwtStrategy,
+                ...config.entities.map((entity) => ({
+                    provide: `${entity.name.toUpperCase()}_REPOSITORY`,
+                    useFactory: (dataSource) => dataSource.getRepository(entity),
+                    inject: [dataSourceToken],
+                })),
             ],
             controllers: [auth_controller_1.AuthController],
-            exports: [auth_service_1.AuthService],
+            exports: [authentication_service_1.AuthenticationService, authorization_service_1.AuthorizationService],
         };
     }
 };
-exports.AuthModule = AuthModule;
-exports.AuthModule = AuthModule = AuthModule_1 = __decorate([
+exports.AuthenticationModule = AuthenticationModule;
+exports.AuthenticationModule = AuthenticationModule = AuthenticationModule_1 = __decorate([
     (0, common_1.Module)({})
-], AuthModule);
+], AuthenticationModule);
