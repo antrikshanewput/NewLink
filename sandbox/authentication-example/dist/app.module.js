@@ -10,7 +10,6 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const authentication_1 = require("@newlink/authentication");
-const extend_custom_entities_1 = require("./entities/extend-custom.entities");
 const user_controller_1 = require("./user.controller");
 let AppModule = class AppModule {
 };
@@ -22,7 +21,7 @@ exports.AppModule = AppModule = __decorate([
             authentication_1.AuthenticationModule.register({
                 authenticationField: 'email',
                 registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
-                entities: [extend_custom_entities_1.User],
+                // entities: [User],
                 roles: ['Admin', 'Editor', 'Viewer'],
                 features: ['Create Post', 'Edit Post', 'View Post'],
                 permissions: [

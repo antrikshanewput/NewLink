@@ -137,7 +137,7 @@ export class AuthorizationService {
     }
 
     async validateFeature(userId: string, tenantId: string, featureName: string): Promise<boolean> {
-        const userTenant = await this.userTenantRepository.find({
+        const userTenant = await this.userTenantRepository.findOne({
             where: { user: { id: userId }, tenant: { id: tenantId } },
             relations: ['features'],
         });

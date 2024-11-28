@@ -11,7 +11,7 @@ import { TestController } from './user.controller';
       {
         authenticationField: 'email',
         registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
-        entities: [User],
+        // entities: [User],
         roles: ['Admin', 'Editor', 'Viewer'],
         features: ['Create Post', 'Edit Post', 'View Post'],
         permissions: [
