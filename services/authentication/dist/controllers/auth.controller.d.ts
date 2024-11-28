@@ -1,7 +1,9 @@
 import { AuthenticationService } from '../services/authentication.service';
+import { AuthenticationOptionsType } from '../authentication.types';
 export declare class AuthController {
     private readonly authenticationService;
-    constructor(authenticationService: AuthenticationService);
+    private readonly options;
+    constructor(authenticationService: AuthenticationService, options: AuthenticationOptionsType);
     login(body: Record<string, any>): Promise<{
         access_token: string;
         user: string;

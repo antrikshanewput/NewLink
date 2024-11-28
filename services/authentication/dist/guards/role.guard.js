@@ -29,12 +29,15 @@ let RoleGuard = class RoleGuard {
         }
         const request = context.switchToHttp().getRequest();
         const userId = (_a = request.user) === null || _a === void 0 ? void 0 : _a.id;
-        console.log('Request User:', request.user);
+        const tenantId = request.headers['tenant'];
         if (!userId) {
             throw new common_1.ForbiddenException('User not authenticated');
         }
+        if (!tenantId) {
+            throw new common_1.ForbiddenException('Tenant not provided in header');
+        }
         for (const role of requiredRoles) {
-            const hasRole = await this.authorizationService.validateRole(userId, role);
+            const hasRole = await this.authorizationService.validateRole(userId, tenantId, role);
             if (hasRole) {
                 return true;
             }

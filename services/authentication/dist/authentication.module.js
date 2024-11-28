@@ -53,8 +53,9 @@ let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
         const entities = [];
         for (const entity of [user_entity_1.BaseUser, feature_entity_1.Feature, role_entity_1.Role, group_entity_1.Group, tenant_entity_1.Tenant, user_tenant_entity_1.UserTenant]) {
             let found = false;
+            let name = (entity.name === 'BaseUser') ? 'User' : entity.name;
             for (const options_entity of options.entities || []) {
-                if (entity.name === options_entity.name) {
+                if (name === options_entity.name) {
                     entities.push(options_entity);
                     found = true;
                     break;
@@ -64,7 +65,6 @@ let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
                 entities.push(entity);
             }
         }
-        console.log(entities);
         options = Object.assign(Object.assign({}, options), { authenticationField: options.authenticationField || 'email', registrationFields: options.registrationFields || ['email', 'password', 'name'], entities: entities });
         if (!options.hashingStrategy && !options.hashValidation) {
             try {
@@ -130,13 +130,24 @@ let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
                 seeder_service_1.AuthorizationSeederService,
                 jwt_strategy_1.JwtStrategy,
                 ...config.entities.map((entity) => ({
-                    provide: `${entity.name.toUpperCase()}_REPOSITORY`,
+                    provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_REPOSITORY`,
                     useFactory: (dataSource) => dataSource.getRepository(entity),
                     inject: [dataSourceToken],
                 })),
+                ...config.entities.map((entity) => ({
+                    provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_ENTITY`,
+                    useValue: entity,
+                })),
             ],
             controllers: [auth_controller_1.AuthController],
-            exports: [authentication_service_1.AuthenticationService, authorization_service_1.AuthorizationService],
+            exports: [
+                authentication_service_1.AuthenticationService,
+                authorization_service_1.AuthorizationService,
+                ...config.entities.map((entity) => ({
+                    provide: `${entity.name === "BaseUser" ? "USER" : entity.name.toUpperCase()}_ENTITY`,
+                    useFactory: () => entity,
+                }))
+            ],
         };
     }
 };

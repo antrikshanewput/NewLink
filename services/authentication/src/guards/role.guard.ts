@@ -27,16 +27,18 @@ export class RoleGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
         const userId = request.user?.id;
-        console.log('Request User:', request.user);
-
-
+        const tenantId = request.headers['tenant'];
 
         if (!userId) {
             throw new ForbiddenException('User not authenticated');
         }
 
+        if (!tenantId) {
+            throw new ForbiddenException('Tenant not provided in header');
+        }
+
         for (const role of requiredRoles) {
-            const hasRole = await this.authorizationService.validateRole(userId, role);
+            const hasRole = await this.authorizationService.validateRole(userId, tenantId, role);
             if (hasRole) {
                 return true;
             }

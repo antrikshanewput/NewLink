@@ -8,41 +8,41 @@ export class Tenant {
 
     @Column()
     name!: string;
-    
-    @Column()
+
+    @Column({ nullable: true })
     address!: string;
-    
-    @Column()
+
+    @Column({ nullable: true })
     city!: string;
-    
-    @Column()
+
+    @Column({ nullable: true })
     state!: string;
-    
-    @Column()
+
+    @Column({ nullable: true })
     zip!: string;
-    
-    @Column()
+
+    @Column({ nullable: true })
     country!: string;
-    
-    @Column()
+
+    @Column({ nullable: true })
     status!: string;
-    
+
     @CreateDateColumn()
     createdAt!: Date;
-    
+
     @Column()
     createdBy!: string;
 
     @UpdateDateColumn()
     updatedAt!: Date;
 
-    @Column()
+    @Column({ nullable: true })
     modifiedBy!: string;
 
     @DeleteDateColumn()
     deletedAt!: Date;
 
-    @Column()
+    @Column({ nullable: true })
     deletedBy!: string;
 
     @OneToMany(() => UserTenant, (userTenant) => userTenant.tenant)

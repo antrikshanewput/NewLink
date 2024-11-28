@@ -24,27 +24,27 @@ __decorate([
     __metadata("design:type", String)
 ], Tenant.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "address", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "city", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "state", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "zip", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "country", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "status", void 0);
 __decorate([
@@ -60,7 +60,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Tenant.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "modifiedBy", void 0);
 __decorate([
@@ -68,7 +68,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Tenant.prototype, "deletedAt", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "deletedBy", void 0);
 __decorate([

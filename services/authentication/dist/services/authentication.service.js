@@ -36,6 +36,8 @@ let AuthenticationService = class AuthenticationService {
     }
     async login(user) {
         const payload = { [this.options.authenticationField]: user[this.options.authenticationField], sub: user.id };
+        user.last_login = new Date();
+        await this.userRepository.save(user);
         return {
             access_token: this.jwtService.sign(payload),
             user: user[this.options.authenticationField],
@@ -43,8 +45,9 @@ let AuthenticationService = class AuthenticationService {
     }
     async register(userDetails) {
         const encryptedPassword = await this.options.hashingStrategy(userDetails.password);
-        const newUser = this.userRepository.create(Object.assign(Object.assign({}, userDetails), { password: encryptedPassword }));
-        return await this.userRepository.save(newUser);
+        let newUser = this.userRepository.create(Object.assign(Object.assign({}, userDetails), { password: encryptedPassword }));
+        newUser = this.userRepository.save(newUser);
+        return await this.login(newUser);
     }
     getAuthenticationField() {
         return this.options.authenticationField;
@@ -56,7 +59,7 @@ let AuthenticationService = class AuthenticationService {
 exports.AuthenticationService = AuthenticationService;
 exports.AuthenticationService = AuthenticationService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, common_1.Inject)('AUTH_OPTIONS')),
+    __param(1, (0, common_1.Inject)('AUTHENTICATION_OPTIONS')),
     __param(2, (0, common_1.Inject)('USER_REPOSITORY')),
     __metadata("design:paramtypes", [jwt_1.JwtService, Object, typeorm_1.Repository])
 ], AuthenticationService);

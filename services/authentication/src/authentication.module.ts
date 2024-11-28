@@ -18,28 +18,24 @@ import { UserTenant } from './entities/user-tenant.entity';
 import { AuthorizationService } from './services/authorization.service';
 import { AuthorizationSeederService } from './services/seeder.service';
 
-
-
-
 @Module({})
 export class AuthenticationModule {
   static async resolveConfig(options: AuthenticationOptionsType): Promise<AuthenticationOptionsType> {
     const entities = []
-
     for (const entity of [BaseUser, Feature, Role, Group, Tenant, UserTenant]) {
       let found = false;
+      let name = (entity.name === 'BaseUser') ? 'User' : entity.name;
       for (const options_entity of options.entities || []) {
-        if (entity.name === options_entity.name) {
+        if (name === options_entity.name) {
           entities.push(options_entity);
           found = true;
-          break; 
+          break;
         }
       }
       if (!found) {
         entities.push(entity);
       }
     }
-    console.log(entities);
 
     options = {
       ...options,
@@ -84,8 +80,8 @@ export class AuthenticationModule {
     return {
       module: AuthenticationModule,
       imports: [
-        ConfigModule.forRoot(), 
-        PassportModule, 
+        ConfigModule.forRoot(),
+        PassportModule,
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
@@ -117,13 +113,24 @@ export class AuthenticationModule {
         AuthorizationSeederService,
         JwtStrategy,
         ...config.entities!.map((entity) => ({
-          provide: `${entity.name.toUpperCase()}_REPOSITORY`,
+          provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_REPOSITORY`,
           useFactory: (dataSource: DataSource) => dataSource.getRepository(entity),
           inject: [dataSourceToken],
         })),
+        ...config.entities!.map((entity) => ({
+          provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_ENTITY`,
+          useValue: entity,
+        })),
       ],
       controllers: [AuthController],
-      exports: [AuthenticationService, AuthorizationService],
+      exports: [
+        AuthenticationService,
+        AuthorizationService,
+        ...config.entities!.map((entity) => ({
+          provide: `${entity.name === "BaseUser" ? "USER" : entity.name.toUpperCase()}_ENTITY`,
+          useFactory: () => entity,
+        }))
+      ],
     };
   }
 }

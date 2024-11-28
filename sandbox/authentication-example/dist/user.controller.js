@@ -9,25 +9,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JwtStrategy = void 0;
+exports.TestController = void 0;
 const common_1 = require("@nestjs/common");
-const passport_1 = require("@nestjs/passport");
-const passport_jwt_1 = require("passport-jwt");
-const config_1 = require("@nestjs/config");
-let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
-    constructor(configService) {
-        super({
-            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: configService.get('JWT_SECRET'),
-        });
-    }
-    async validate(payload) {
-        return { userId: payload.sub, email: payload.username };
+const authentication_1 = require("@newlink/authentication");
+let TestController = class TestController {
+    // @Authentication()
+    getHelloWorld(req, res) {
+        return 'Hello World!';
     }
 };
-exports.JwtStrategy = JwtStrategy;
-exports.JwtStrategy = JwtStrategy = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
-], JwtStrategy);
+exports.TestController = TestController;
+__decorate([
+    (0, common_1.Get)()
+    // @Role('Editor')
+    ,
+    (0, authentication_1.Feature)('View Post')
+    // @Authentication()
+    ,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", String)
+], TestController.prototype, "getHelloWorld", null);
+exports.TestController = TestController = __decorate([
+    (0, common_1.Controller)('hello')
+], TestController);

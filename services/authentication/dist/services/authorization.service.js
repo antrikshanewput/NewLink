@@ -16,11 +16,10 @@ exports.AuthorizationService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 let AuthorizationService = class AuthorizationService {
-    constructor(roleRepository, featureRepository, userRoleRepository, userFeatureRepository) {
+    constructor(roleRepository, featureRepository, userTenantRepository) {
         this.roleRepository = roleRepository;
         this.featureRepository = featureRepository;
-        this.userRoleRepository = userRoleRepository;
-        this.userFeatureRepository = userFeatureRepository;
+        this.userTenantRepository = userTenantRepository;
     }
     async createRole(name, description) {
         const existingRole = await this.roleRepository.findOne({ where: { name } });
@@ -53,65 +52,81 @@ let AuthorizationService = class AuthorizationService {
         }
         throw new Error(`Feature "${feature.name}" is already assigned to Role "${role.name}"`);
     }
-    async assignUserRole(userId, roleId) {
+    async assignTenantUserRole(userId, tenantId, roleId) {
         const role = await this.roleRepository.findOne({ where: { id: roleId } });
         if (!role) {
             throw new Error(`Role with ID "${roleId}" not found`);
         }
-        const existingUserRole = await this.userRoleRepository.findOne({
-            where: { userId, role: { id: roleId } },
+        const userTenant = await this.userTenantRepository.findOne({
+            where: { user: { id: userId }, tenant: { id: tenantId }, role: { id: roleId } },
         });
-        if (!existingUserRole) {
-            const userRole = this.userRoleRepository.create({ userId, role });
-            return this.userRoleRepository.save(userRole);
+        if (!userTenant) {
+            const newUserTenant = this.userTenantRepository.create({
+                user: { id: userId },
+                tenant: { id: tenantId },
+                role,
+            });
+            return this.userTenantRepository.save(newUserTenant);
         }
-        throw new Error(`User "${userId}" already has Role "${role.name}"`);
+        throw new Error(`User "${userId}" already has Role "${role.name}" in Tenant "${tenantId}"`);
     }
-    async revokeUserRole(userId, roleId) {
-        const userRole = await this.userRoleRepository.findOne({
-            where: { userId, role: { id: roleId } },
+    async revokeTenantUserRole(userId, tenantId, roleId) {
+        const userTenant = await this.userTenantRepository.findOne({
+            where: { user: { id: userId }, tenant: { id: tenantId }, role: { id: roleId } },
         });
-        if (!userRole) {
-            throw new Error(`Role with ID "${roleId}" not assigned to User "${userId}"`);
+        if (!userTenant) {
+            throw new Error(`Role with ID "${roleId}" not assigned to User "${userId}" in Tenant "${tenantId}"`);
         }
-        await this.userRoleRepository.remove(userRole);
+        await this.userTenantRepository.remove(userTenant);
     }
-    async assignUserFeature(userId, featureId) {
+    async assignTenantUserFeature(userId, tenantId, featureId) {
         const feature = await this.featureRepository.findOne({ where: { id: featureId } });
         if (!feature) {
             throw new Error(`Feature with ID "${featureId}" not found`);
         }
-        const existingUserFeature = await this.userFeatureRepository.findOne({
-            where: { userId, feature: { id: featureId } },
+        const userTenant = await this.userTenantRepository.findOne({
+            where: { user: { id: userId }, tenant: { id: tenantId } },
+            relations: ['features'],
         });
-        if (!existingUserFeature) {
-            const userFeature = this.userFeatureRepository.create({ userId, feature });
-            return this.userFeatureRepository.save(userFeature);
+        if (!userTenant) {
+            throw new Error(`User "${userId}" is not associated with Tenant "${tenantId}"`);
         }
-        throw new Error(`User "${userId}" already has Feature "${feature.name}"`);
+        if (!userTenant.features.find((f) => f.id === featureId)) {
+            userTenant.features.push(feature);
+            return this.userTenantRepository.save(userTenant);
+        }
+        throw new Error(`Feature "${feature.name}" already assigned to User "${userId}" in Tenant "${tenantId}"`);
     }
-    async revokeUserFeature(userId, featureId) {
-        const userFeature = await this.userFeatureRepository.findOne({
-            where: { userId, feature: { id: featureId } },
+    async revokeTenantUserFeature(userId, tenantId, featureId) {
+        const userTenant = await this.userTenantRepository.findOne({
+            where: { user: { id: userId }, tenant: { id: tenantId } },
+            relations: ['features'],
         });
-        if (!userFeature) {
-            throw new Error(`Feature with ID "${featureId}" not assigned to User "${userId}"`);
+        if (!userTenant) {
+            throw new Error(`User "${userId}" is not associated with Tenant "${tenantId}"`);
         }
-        await this.userFeatureRepository.remove(userFeature);
+        const featureIndex = userTenant.features.findIndex((f) => f.id === featureId);
+        if (featureIndex === -1) {
+            throw new Error(`Feature with ID "${featureId}" not assigned to User "${userId}" in Tenant "${tenantId}"`);
+        }
+        userTenant.features.splice(featureIndex, 1);
+        await this.userTenantRepository.save(userTenant);
     }
-    async validateRole(userId, roleName) {
-        const userRole = await this.userRoleRepository.findOne({
-            where: { userId, role: { name: roleName } },
+    async validateRole(userId, tenantId, roleName) {
+        const userTenant = await this.userTenantRepository.findOne({
+            where: { user: { id: userId }, tenant: { id: tenantId }, role: { name: roleName } },
             relations: ['role'],
         });
-        return !!userRole;
+        return !!userTenant;
     }
-    async validateFeature(userId, featureName) {
-        const userFeature = await this.userFeatureRepository.findOne({
-            where: { userId, feature: { name: featureName } },
-            relations: ['feature'],
+    async validateFeature(userId, tenantId, featureName) {
+        const userTenant = await this.userTenantRepository.findOne({
+            where: { user: { id: userId }, tenant: { id: tenantId } },
+            relations: ['features'],
         });
-        return !!userFeature;
+        if (!userTenant)
+            return false;
+        return !!userTenant.features.find((f) => f.name === featureName);
     }
 };
 exports.AuthorizationService = AuthorizationService;
@@ -119,10 +134,8 @@ exports.AuthorizationService = AuthorizationService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)('ROLE_REPOSITORY')),
     __param(1, (0, common_1.Inject)('FEATURE_REPOSITORY')),
-    __param(2, (0, common_1.Inject)('USERROLE_REPOSITORY')),
-    __param(3, (0, common_1.Inject)('USERFEATURE_REPOSITORY')),
+    __param(2, (0, common_1.Inject)('USERTENANT_REPOSITORY')),
     __metadata("design:paramtypes", [typeorm_1.Repository,
-        typeorm_1.Repository,
         typeorm_1.Repository,
         typeorm_1.Repository])
 ], AuthorizationService);

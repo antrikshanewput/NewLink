@@ -29,11 +29,15 @@ let FeatureGuard = class FeatureGuard {
         }
         const request = context.switchToHttp().getRequest();
         const userId = (_a = request.user) === null || _a === void 0 ? void 0 : _a.id;
+        const tenantId = request.headers['tenant'];
         if (!userId) {
             throw new common_1.ForbiddenException('User not authenticated');
         }
+        if (!tenantId) {
+            throw new common_1.ForbiddenException('Tenant not provided in header');
+        }
         for (const feature of requiredFeatures) {
-            const hasFeature = await this.authorizationService.validateFeature(userId, feature);
+            const hasFeature = await this.authorizationService.validateFeature(userId, tenantId, feature);
             if (hasFeature) {
                 return true;
             }

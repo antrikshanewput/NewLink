@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, BadRequestException, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, BadRequestException, Inject } from '@nestjs/common';
 import { AuthenticationService } from '../services/authentication.service';
 import { Authentication } from '../decorators/auth.decorator';
+import { AuthenticationOptionsType } from '../authentication.types';
 
 @Controller('authentication')
 export class AuthController {
-  constructor(private readonly authenticationService: AuthenticationService) { }
+  constructor(private readonly authenticationService: AuthenticationService, @Inject('AUTHENTICATION_OPTIONS') private readonly options: AuthenticationOptionsType,) { }
 
   @Post('login')
   async login(@Body() body: Record<string, any>) {
@@ -37,6 +38,10 @@ export class AuthController {
       throw new BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
     }
 
+    const existingUser = await this.authenticationService.findUserByAuthField(body[this.options.authenticationField!]);
+    if (existingUser) {
+      throw new BadRequestException('User already exists');
+    }
     return this.authenticationService.register(body);
   }
 }

@@ -10,7 +10,7 @@ export class BaseUser {
   @Column()
   first_name!: string;
 
-  @Column()
+  @Column({ nullable: true })
   last_name!: string;
 
   @Column({ unique: true })
@@ -25,7 +25,7 @@ export class BaseUser {
   @Column()
   password!: string;
 
-  @Column()
+  @Column({ nullable: true })
   last_login!: Date;
 
   @CreateDateColumn()

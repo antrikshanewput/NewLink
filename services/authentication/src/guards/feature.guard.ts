@@ -21,18 +21,23 @@ export class FeatureGuard implements CanActivate {
         ]);
 
         if (!requiredFeatures || requiredFeatures.length === 0) {
-            return true; 
+            return true;
         }
 
         const request = context.switchToHttp().getRequest();
         const userId = request.user?.id;
+        const tenantId = request.headers['tenant'];
 
         if (!userId) {
             throw new ForbiddenException('User not authenticated');
         }
 
+        if (!tenantId) {
+            throw new ForbiddenException('Tenant not provided in header');
+        }
+
         for (const feature of requiredFeatures) {
-            const hasFeature = await this.authorizationService.validateFeature(userId, feature);
+            const hasFeature = await this.authorizationService.validateFeature(userId, tenantId, feature);
             if (hasFeature) {
                 return true;
             }

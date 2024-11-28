@@ -24,7 +24,7 @@ __decorate([
     __metadata("design:type", String)
 ], BaseUser.prototype, "first_name", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], BaseUser.prototype, "last_name", void 0);
 __decorate([
@@ -44,7 +44,7 @@ __decorate([
     __metadata("design:type", String)
 ], BaseUser.prototype, "password", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)
 ], BaseUser.prototype, "last_login", void 0);
 __decorate([

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { AuthenticationOptionsType } from '../authentication.types';
@@ -7,9 +7,9 @@ import { AuthenticationOptionsType } from '../authentication.types';
 export class AuthenticationService {
   constructor(
     private readonly jwtService: JwtService,
-    @Inject('AUTH_OPTIONS') private readonly options: AuthenticationOptionsType,
+    @Inject('AUTHENTICATION_OPTIONS') private readonly options: AuthenticationOptionsType,
     @Inject('USER_REPOSITORY') private readonly userRepository: Repository<any>,
-  ) {}
+  ) { }
 
   async findUserByAuthField(value: string): Promise<any | null> {
     const field = this.options.authenticationField!;
@@ -27,6 +27,8 @@ export class AuthenticationService {
 
   async login(user: any): Promise<{ access_token: string, user: string }> {
     const payload = { [this.options.authenticationField!]: user[this.options.authenticationField!], sub: user.id };
+    user.last_login = new Date();
+    await this.userRepository.save(user);
     return {
       access_token: this.jwtService.sign(payload),
       user: user[this.options.authenticationField!],
@@ -34,9 +36,12 @@ export class AuthenticationService {
   }
 
   async register(userDetails: any): Promise<any> {
+
     const encryptedPassword = await this.options.hashingStrategy!(userDetails.password);
-    const newUser = this.userRepository.create({ ...userDetails, password: encryptedPassword });
-    return await this.userRepository.save(newUser);
+    let newUser = this.userRepository.create({ ...userDetails, password: encryptedPassword });
+    newUser = this.userRepository.save(newUser);
+
+    return await this.login(newUser);
   }
   getAuthenticationField(): string {
     return this.options.authenticationField!;

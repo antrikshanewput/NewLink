@@ -1,11 +1,8 @@
-// import { Entity, Column } from 'typeorm';
-// import { User } from '@newlink/authentication';
+import { Entity, Column } from 'typeorm';
+import { BaseUser } from '@newlink/authentication';
 
-// @Entity()
-// export class CustomUser extends User {
-//   @Column({ nullable: true })
-//   address?: string;
-
-//   @Column({ nullable: true })
-//   profilePictureUrl?: string;
-// }
+@Entity('users')
+export class User extends BaseUser {
+    @Column({ nullable: true })
+    profilePictureUrl?: string;
+}

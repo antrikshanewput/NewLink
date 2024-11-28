@@ -16,8 +16,9 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const authentication_service_1 = require("../services/authentication.service");
 let AuthController = class AuthController {
-    constructor(authenticationService) {
+    constructor(authenticationService, options) {
         this.authenticationService = authenticationService;
+        this.options = options;
     }
     async login(body) {
         const authField = this.authenticationService.getAuthenticationField();
@@ -42,6 +43,10 @@ let AuthController = class AuthController {
         if (missingFields.length > 0) {
             throw new common_1.BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
         }
+        const existingUser = await this.authenticationService.findUserByAuthField(body[this.options.authenticationField]);
+        if (existingUser) {
+            throw new common_1.BadRequestException('User already exists');
+        }
         return this.authenticationService.register(body);
     }
 };
@@ -62,5 +67,6 @@ __decorate([
 ], AuthController.prototype, "register", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('authentication'),
-    __metadata("design:paramtypes", [authentication_service_1.AuthenticationService])
+    __param(1, (0, common_1.Inject)('AUTHENTICATION_OPTIONS')),
+    __metadata("design:paramtypes", [authentication_service_1.AuthenticationService, Object])
 ], AuthController);

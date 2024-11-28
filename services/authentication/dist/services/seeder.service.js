@@ -22,14 +22,12 @@ let AuthorizationSeederService = class AuthorizationSeederService {
         this.featureRepository = featureRepository;
     }
     async onApplicationBootstrap() {
-        // Seed roles
         for (const roleName of this.config.roles || []) {
             const existingRole = await this.roleRepository.findOne({ where: { name: roleName } });
             if (!existingRole) {
                 await this.roleRepository.save(this.roleRepository.create({ name: roleName }));
             }
         }
-        // Seed features
         for (const featureName of this.config.features || []) {
             const existingFeature = await this.featureRepository.findOne({ where: { name: featureName } });
             if (!existingFeature) {
@@ -57,7 +55,7 @@ let AuthorizationSeederService = class AuthorizationSeederService {
 exports.AuthorizationSeederService = AuthorizationSeederService;
 exports.AuthorizationSeederService = AuthorizationSeederService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)('AUTHORIZATION_OPTIONS')),
+    __param(0, (0, common_1.Inject)('AUTHENTICATION_OPTIONS')),
     __param(1, (0, common_1.Inject)('ROLE_REPOSITORY')),
     __param(2, (0, common_1.Inject)('FEATURE_REPOSITORY')),
     __metadata("design:paramtypes", [Object, typeorm_1.Repository,
