@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthenticationModule } from '@newlink/authentication';
-import { User } from './entities/extend-custom.entities';
+import { User } from './entities/user.entities';
 import { TestController } from './user.controller';
 
 @Module({
@@ -9,9 +9,9 @@ import { TestController } from './user.controller';
     ConfigModule.forRoot({ isGlobal: true }),
     AuthenticationModule.register(
       {
-        authenticationField: 'email',
+        authenticationField: 'phone',
         registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
-        // entities: [User],
+        entities: [User],
         roles: ['Admin', 'Editor', 'Viewer'],
         features: ['Create Post', 'Edit Post', 'View Post'],
         permissions: [

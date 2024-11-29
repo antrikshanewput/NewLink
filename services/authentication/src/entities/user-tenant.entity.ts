@@ -10,11 +10,8 @@ import {
     ManyToMany,
     JoinTable,
 } from 'typeorm';
-import { BaseUser } from './user.entity';
-import { Tenant } from './tenant.entity';
-import { Role } from './role.entity';
-import { Feature } from './feature.entity';
-import { Group } from './group.entity';
+
+import { EntityRegistry } from '.';
 
 @Entity('user_tenant')
 @Unique(['user', 'tenant', 'role'])
@@ -22,17 +19,18 @@ export class UserTenant {
     @PrimaryGeneratedColumn('uuid')
     id!: number;
 
-    @ManyToOne(() => BaseUser, (user) => user.userTenants, { eager: true })
+    @ManyToOne(() => EntityRegistry.getEntity('User'), (user: any) => user.userTenants, { eager: true })
     @JoinColumn({ name: 'user_id' })
-    user!: BaseUser;
+    user!: any;
 
-    @ManyToOne(() => Tenant, (tenant) => tenant.userTenants, { eager: true })
+
+    @ManyToOne(() => EntityRegistry.getEntity('Tenant'), (tenant: any) => tenant.userTenants, { eager: true })
     @JoinColumn({ name: 'tenant_id' })
-    tenant!: Tenant;
+    tenant!: any;
 
-    @ManyToOne(() => Role, (role) => role.userTenants, { eager: true })
+    @ManyToOne(() => EntityRegistry.getEntity('Role'), (role: any) => role.userTenants, { eager: true })
     @JoinColumn({ name: 'role_id' })
-    role!: Role;
+    role!: any;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt!: Date;
@@ -43,7 +41,7 @@ export class UserTenant {
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
     deletedAt!: Date;
 
-    @ManyToMany(() => Feature, (feature) => feature.userTenants)
+    @ManyToMany(() => EntityRegistry.getEntity('Feature'), (feature: any) => feature.userTenants)
     @JoinTable({
         name: 'user_tenant_features',
         joinColumn: {
@@ -55,9 +53,9 @@ export class UserTenant {
             referencedColumnName: 'id',
         },
     })
-    features!: Feature[];
+    features!: any[];
 
-    @ManyToMany(() => Group, (group) => group.userTenants)
+    @ManyToMany(() => EntityRegistry.getEntity('Group'), (group: any) => group.userTenants)
     @JoinTable({
         name: 'user_tenant_groups',
         joinColumn: {
@@ -69,5 +67,5 @@ export class UserTenant {
             referencedColumnName: 'id',
         },
     })
-    groups!: Group[];
+    groups!: any[];
 }

@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const authentication_1 = require("@newlink/authentication");
+const user_entities_1 = require("./entities/user.entities");
 const user_controller_1 = require("./user.controller");
 let AppModule = class AppModule {
 };
@@ -19,9 +20,9 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             authentication_1.AuthenticationModule.register({
-                authenticationField: 'email',
+                authenticationField: 'phone',
                 registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
-                // entities: [User],
+                entities: [user_entities_1.User],
                 roles: ['Admin', 'Editor', 'Viewer'],
                 features: ['Create Post', 'Edit Post', 'View Post'],
                 permissions: [

@@ -11,57 +11,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const typeorm_1 = require("typeorm");
-let User = class User {
+const authentication_1 = require("@newlink/authentication");
+let User = class User extends authentication_1.BaseUser {
 };
 exports.User = User;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], User.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: false }),
-    __metadata("design:type", String)
-], User.prototype, "name", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 255, unique: true, nullable: false }),
-    __metadata("design:type", String)
-], User.prototype, "email", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 15, unique: true, nullable: false }),
-    __metadata("design:type", String)
-], User.prototype, "phone", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', nullable: false }),
-    __metadata("design:type", String)
-], User.prototype, "password", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 255, unique: true, nullable: false }),
-    __metadata("design:type", String)
-], User.prototype, "username", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "address", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 6, nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "pincode", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: ['male', 'female', 'other'], nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "gender", void 0);
-__decorate([
-    (0, typeorm_1.CreateDateColumn)(),
-    __metadata("design:type", Date)
-], User.prototype, "createdAt", void 0);
-__decorate([
-    (0, typeorm_1.UpdateDateColumn)(),
-    __metadata("design:type", Date)
-], User.prototype, "updatedAt", void 0);
-__decorate([
-    (0, typeorm_1.DeleteDateColumn)(),
-    __metadata("design:type", Date)
-], User.prototype, "deletedAt", void 0);
+], User.prototype, "profilePictureUrl", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)('users')
 ], User);

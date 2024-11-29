@@ -1,4 +1,3 @@
-import { UserTenant } from './user-tenant.entity';
 export declare class BaseUser {
     id: number;
     first_name: string;
@@ -11,5 +10,5 @@ export declare class BaseUser {
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date;
-    userTenants: UserTenant[];
+    userTenants: any[];
 }

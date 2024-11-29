@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { UserTenant } from "./user-tenant.entity";
+import { EntityRegistry } from ".";
 
 @Entity('tenants')
 export class Tenant {
@@ -45,6 +45,6 @@ export class Tenant {
     @Column({ nullable: true })
     deletedBy!: string;
 
-    @OneToMany(() => UserTenant, (userTenant) => userTenant.tenant)
-    userTenants!: UserTenant[];
+    @OneToMany(() => EntityRegistry.getEntity('UserTenant'), (userTenant: any) => userTenant.tenant)
+    userTenants!: any[];
 }

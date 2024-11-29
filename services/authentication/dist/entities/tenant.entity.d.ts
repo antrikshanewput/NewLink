@@ -1,4 +1,3 @@
-import { UserTenant } from "./user-tenant.entity";
 export declare class Tenant {
     id: number;
     name: string;
@@ -14,5 +13,5 @@ export declare class Tenant {
     modifiedBy: string;
     deletedAt: Date;
     deletedBy: string;
-    userTenants: UserTenant[];
+    userTenants: any[];
 }

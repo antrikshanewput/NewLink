@@ -11,8 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Feature = void 0;
 const typeorm_1 = require("typeorm");
-const role_entity_1 = require("./role.entity");
-const user_tenant_entity_1 = require("./user-tenant.entity");
+const _1 = require(".");
 let Feature = class Feature {
 };
 exports.Feature = Feature;
@@ -29,7 +28,7 @@ __decorate([
     __metadata("design:type", String)
 ], Feature.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => role_entity_1.Role, (role) => role.features),
+    (0, typeorm_1.ManyToMany)(() => _1.EntityRegistry.getEntity('Role'), (role) => role.features),
     __metadata("design:type", Array)
 ], Feature.prototype, "roles", void 0);
 __decorate([
@@ -45,7 +44,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Feature.prototype, "deletedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => user_tenant_entity_1.UserTenant, (userTenant) => userTenant.features),
+    (0, typeorm_1.ManyToMany)(() => _1.EntityRegistry.getEntity('UserTenant'), (userTenant) => userTenant.features),
     __metadata("design:type", Array)
 ], Feature.prototype, "userTenants", void 0);
 exports.Feature = Feature = __decorate([

@@ -48,6 +48,7 @@ const tenant_entity_1 = require("./entities/tenant.entity");
 const user_tenant_entity_1 = require("./entities/user-tenant.entity");
 const authorization_service_1 = require("./services/authorization.service");
 const seeder_service_1 = require("./services/seeder.service");
+const entities_1 = require("./entities");
 let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
     static async resolveConfig(options) {
         const entities = [];
@@ -65,6 +66,10 @@ let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
                 entities.push(entity);
             }
         }
+        entities.forEach((entity) => {
+            const alias = entity.name === 'BaseUser' ? 'User' : entity.name;
+            entities_1.EntityRegistry.registerEntity(alias, entity);
+        });
         options = Object.assign(Object.assign({}, options), { authenticationField: options.authenticationField || 'email', registrationFields: options.registrationFields || ['email', 'password', 'name'], entities: entities });
         if (!options.hashingStrategy && !options.hashValidation) {
             try {
@@ -134,19 +139,11 @@ let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
                     useFactory: (dataSource) => dataSource.getRepository(entity),
                     inject: [dataSourceToken],
                 })),
-                ...config.entities.map((entity) => ({
-                    provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_ENTITY`,
-                    useValue: entity,
-                })),
             ],
             controllers: [auth_controller_1.AuthController],
             exports: [
                 authentication_service_1.AuthenticationService,
-                authorization_service_1.AuthorizationService,
-                ...config.entities.map((entity) => ({
-                    provide: `${entity.name === "BaseUser" ? "USER" : entity.name.toUpperCase()}_ENTITY`,
-                    useFactory: () => entity,
-                }))
+                authorization_service_1.AuthorizationService
             ],
         };
     }

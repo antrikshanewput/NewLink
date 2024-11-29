@@ -35,7 +35,7 @@ let AuthenticationService = class AuthenticationService {
         return null;
     }
     async login(user) {
-        const payload = { [this.options.authenticationField]: user[this.options.authenticationField], sub: user.id };
+        const payload = { [this.options.authenticationField]: user[this.options.authenticationField], sub: user };
         await this.userRepository.update(user.id, { last_login: new Date() });
         return {
             access_token: this.jwtService.sign(payload),
@@ -45,9 +45,8 @@ let AuthenticationService = class AuthenticationService {
     async register(userDetails) {
         const encryptedPassword = await this.options.hashingStrategy(userDetails.password);
         let newUser = this.userRepository.create(Object.assign(Object.assign({}, userDetails), { password: encryptedPassword }));
-        newUser = this.userRepository.save(newUser);
+        newUser = await this.userRepository.save(newUser);
         return await this.login(newUser);
-        // return await this.userRepository.save(newUser);
     }
     getAuthenticationField() {
         return this.options.authenticationField;

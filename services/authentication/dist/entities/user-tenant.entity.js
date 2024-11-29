@@ -11,11 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserTenant = void 0;
 const typeorm_1 = require("typeorm");
-const user_entity_1 = require("./user.entity");
-const tenant_entity_1 = require("./tenant.entity");
-const role_entity_1 = require("./role.entity");
-const feature_entity_1 = require("./feature.entity");
-const group_entity_1 = require("./group.entity");
+const _1 = require(".");
 let UserTenant = class UserTenant {
 };
 exports.UserTenant = UserTenant;
@@ -24,19 +20,19 @@ __decorate([
     __metadata("design:type", Number)
 ], UserTenant.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.BaseUser, (user) => user.userTenants, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => _1.EntityRegistry.getEntity('User'), (user) => user.userTenants, { eager: true }),
     (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
-    __metadata("design:type", user_entity_1.BaseUser)
+    __metadata("design:type", Object)
 ], UserTenant.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, (tenant) => tenant.userTenants, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => _1.EntityRegistry.getEntity('Tenant'), (tenant) => tenant.userTenants, { eager: true }),
     (0, typeorm_1.JoinColumn)({ name: 'tenant_id' }),
-    __metadata("design:type", tenant_entity_1.Tenant)
+    __metadata("design:type", Object)
 ], UserTenant.prototype, "tenant", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => role_entity_1.Role, (role) => role.userTenants, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => _1.EntityRegistry.getEntity('Role'), (role) => role.userTenants, { eager: true }),
     (0, typeorm_1.JoinColumn)({ name: 'role_id' }),
-    __metadata("design:type", role_entity_1.Role)
+    __metadata("design:type", Object)
 ], UserTenant.prototype, "role", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
@@ -51,7 +47,7 @@ __decorate([
     __metadata("design:type", Date)
 ], UserTenant.prototype, "deletedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => feature_entity_1.Feature, (feature) => feature.userTenants),
+    (0, typeorm_1.ManyToMany)(() => _1.EntityRegistry.getEntity('Feature'), (feature) => feature.userTenants),
     (0, typeorm_1.JoinTable)({
         name: 'user_tenant_features',
         joinColumn: {
@@ -66,7 +62,7 @@ __decorate([
     __metadata("design:type", Array)
 ], UserTenant.prototype, "features", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => group_entity_1.Group, (group) => group.userTenants),
+    (0, typeorm_1.ManyToMany)(() => _1.EntityRegistry.getEntity('Group'), (group) => group.userTenants),
     (0, typeorm_1.JoinTable)({
         name: 'user_tenant_groups',
         joinColumn: {

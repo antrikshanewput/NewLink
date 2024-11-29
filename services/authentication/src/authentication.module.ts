@@ -17,6 +17,7 @@ import { Tenant } from './entities/tenant.entity';
 import { UserTenant } from './entities/user-tenant.entity';
 import { AuthorizationService } from './services/authorization.service';
 import { AuthorizationSeederService } from './services/seeder.service';
+import { EntityRegistry } from './entities';
 
 @Module({})
 export class AuthenticationModule {
@@ -36,6 +37,11 @@ export class AuthenticationModule {
         entities.push(entity);
       }
     }
+
+    entities!.forEach((entity) => {
+      const alias = entity.name === 'BaseUser' ? 'User' : entity.name;
+      EntityRegistry.registerEntity(alias, entity);
+    });
 
     options = {
       ...options,
@@ -77,6 +83,8 @@ export class AuthenticationModule {
   static async register(configuration: AuthenticationOptionsType, db: DatabaseOptionsType = {}): Promise<DynamicModule> {
     const config = await this.resolveConfig(configuration);
     const dataSourceToken = getDataSourceToken('authenticationDataSource');
+
+
     return {
       module: AuthenticationModule,
       imports: [
@@ -117,19 +125,11 @@ export class AuthenticationModule {
           useFactory: (dataSource: DataSource) => dataSource.getRepository(entity),
           inject: [dataSourceToken],
         })),
-        ...config.entities!.map((entity) => ({
-          provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_ENTITY`,
-          useValue: entity,
-        })),
       ],
       controllers: [AuthController],
       exports: [
         AuthenticationService,
-        AuthorizationService,
-        ...config.entities!.map((entity) => ({
-          provide: `${entity.name === "BaseUser" ? "USER" : entity.name.toUpperCase()}_ENTITY`,
-          useFactory: () => entity,
-        }))
+        AuthorizationService
       ],
     };
   }

@@ -1,41 +1,8 @@
-import { UserTenant } from '@newlink/authentication/dist/entities/user-tenant.entity';
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany } from 'typeorm';
+import { Entity, Column } from 'typeorm';
+import { BaseUser } from '@newlink/authentication';
 
 @Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false })
-  name!: string;
-
-  @Column({ type: 'varchar', length: 255, unique: true, nullable: false })
-  email!: string;
-
-  @Column({ type: 'varchar', length: 15, unique: true, nullable: false })
-  phone!: string;
-
-  @Column({ type: 'varchar', nullable: false })
-  password!: string;
-
-  @Column({ type: 'varchar', length: 255, unique: true, nullable: false })
-  username!: string;
-
-  @Column({ type: 'text', nullable: true })
-  address!: string;
-
-  @Column({ type: 'varchar', length: 6, nullable: true })
-  pincode!: string;
-
-  @Column({ type: 'enum', enum: ['male', 'female', 'other'], nullable: true })
-  gender!: 'male' | 'female' | 'other';
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
-
-  @DeleteDateColumn()
-  deletedAt!: Date;
+export class User extends BaseUser {
+    @Column({ nullable: true })
+    profilePictureUrl?: string;
 }

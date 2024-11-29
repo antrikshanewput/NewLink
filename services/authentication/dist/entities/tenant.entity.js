@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Tenant = void 0;
 const typeorm_1 = require("typeorm");
-const user_tenant_entity_1 = require("./user-tenant.entity");
+const _1 = require(".");
 let Tenant = class Tenant {
 };
 exports.Tenant = Tenant;
@@ -72,7 +72,7 @@ __decorate([
     __metadata("design:type", String)
 ], Tenant.prototype, "deletedBy", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => user_tenant_entity_1.UserTenant, (userTenant) => userTenant.tenant),
+    (0, typeorm_1.OneToMany)(() => _1.EntityRegistry.getEntity('UserTenant'), (userTenant) => userTenant.tenant),
     __metadata("design:type", Array)
 ], Tenant.prototype, "userTenants", void 0);
 exports.Tenant = Tenant = __decorate([
