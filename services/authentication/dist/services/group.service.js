@@ -56,7 +56,7 @@ let GroupService = class GroupService {
         if (!group) {
             throw new Error(`Group with ID "${groupId}" not found`);
         }
-        const userTenant = { id: userTenantId }; // Placeholder for UserTenant relation
+        const userTenant = { id: userTenantId };
         if (!group.userTenants.find((ut) => ut.id === Number(userTenantId))) {
             group.userTenants.push(userTenant);
             return this.groupRepository.save(group);
@@ -81,3 +81,4 @@ exports.GroupService = GroupService = __decorate([
     __param(0, (0, common_1.Inject)('GROUP_REPOSITORY')),
     __metadata("design:paramtypes", [typeorm_1.Repository])
 ], GroupService);
+//# sourceMappingURL=group.service.js.map

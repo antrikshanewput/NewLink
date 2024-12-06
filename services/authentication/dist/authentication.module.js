@@ -40,7 +40,7 @@ const authentication_service_1 = require("./services/authentication.service");
 const auth_controller_1 = require("./controllers/auth.controller");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const user_entity_1 = require("./entities/user.entity");
-const authentication_types_1 = require("./authentication.types");
+const authentication_type_1 = require("./authentication.type");
 const feature_entity_1 = require("./entities/feature.entity");
 const role_entity_1 = require("./entities/role.entity");
 const group_entity_1 = require("./entities/group.entity");
@@ -81,7 +81,7 @@ let AuthenticationModule = AuthenticationModule_1 = class AuthenticationModule {
                 throw new Error('Argon2 module is required for default encryption strategy. Please install it using "npm install argon2".');
             }
         }
-        (0, authentication_types_1.validateAuthorizationOptions)(options);
+        (0, authentication_type_1.validateAuthorizationOptions)(options);
         return options;
     }
     static async resolveDatabaseConfig(database, configService, config) {
@@ -152,3 +152,4 @@ exports.AuthenticationModule = AuthenticationModule;
 exports.AuthenticationModule = AuthenticationModule = AuthenticationModule_1 = __decorate([
     (0, common_1.Module)({})
 ], AuthenticationModule);
+//# sourceMappingURL=authentication.module.js.map

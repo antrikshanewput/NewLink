@@ -9,3 +9,4 @@ exports.FEATURE_KEY = 'features';
 function Feature(...features) {
     return (0, common_1.applyDecorators)((0, common_1.SetMetadata)(exports.FEATURE_KEY, features), (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, feature_guard_1.FeatureGuard));
 }
+//# sourceMappingURL=feature.decorator.js.map

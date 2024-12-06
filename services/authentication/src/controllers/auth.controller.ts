@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, BadRequestException, Inject } from '@nestjs/common';
 import { AuthenticationService } from '../services/authentication.service';
 import { Authentication } from '../decorators/auth.decorator';
-import { AuthenticationOptionsType } from '../authentication.types';
+import { AuthenticationOptionsType } from '../authentication.type';
 
 @Controller('authentication')
 export class AuthController {

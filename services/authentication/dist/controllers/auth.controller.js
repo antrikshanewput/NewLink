@@ -70,3 +70,4 @@ exports.AuthController = AuthController = __decorate([
     __param(1, (0, common_1.Inject)('AUTHENTICATION_OPTIONS')),
     __metadata("design:paramtypes", [authentication_service_1.AuthenticationService, Object])
 ], AuthController);
+//# sourceMappingURL=auth.controller.js.map

@@ -51,3 +51,4 @@ exports.FeatureGuard = FeatureGuard = __decorate([
     __metadata("design:paramtypes", [core_1.Reflector,
         authorization_service_1.AuthorizationService])
 ], FeatureGuard);
+//# sourceMappingURL=feature.guard.js.map

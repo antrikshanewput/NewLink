@@ -55,3 +55,4 @@ exports.TenantService = TenantService = __decorate([
     __param(0, (0, common_1.Inject)('TENANT_REPOSITORY')),
     __metadata("design:paramtypes", [typeorm_1.Repository])
 ], TenantService);
+//# sourceMappingURL=tenant.service.js.map

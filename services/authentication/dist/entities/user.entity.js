@@ -66,3 +66,4 @@ __decorate([
 exports.BaseUser = BaseUser = __decorate([
     (0, typeorm_1.Entity)('users')
 ], BaseUser);
+//# sourceMappingURL=user.entity.js.map

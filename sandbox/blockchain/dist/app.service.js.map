@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/app.service.ts"],"sourcesContent":["import { Injectable } from '@nestjs/common';\n\n@Injectable()\nexport class AppService {\n  getHello(): string {\n    return 'Hello World!';\n  }\n}\n"],"names":["AppService","getHello"],"mappings":";;;;+BAGaA;;;eAAAA;;;wBAHc;;;;;;;AAGpB,IAAA,AAAMA,aAAN,MAAMA;IACXC,WAAmB;QACjB,OAAO;IACT;AACF"}

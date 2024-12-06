@@ -1,5 +1,5 @@
 import { AuthenticationService } from '../services/authentication.service';
-import { AuthenticationOptionsType } from '../authentication.types';
+import { AuthenticationOptionsType } from '../authentication.type';
 export declare class AuthController {
     private readonly authenticationService;
     private readonly options;

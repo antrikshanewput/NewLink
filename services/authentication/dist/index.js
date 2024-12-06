@@ -15,7 +15,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FeatuerEntity = exports.RoleEntity = void 0;
-// Export the main AuthModule
 __exportStar(require("./authentication.module"), exports);
 __exportStar(require("./entities/user.entity"), exports);
 var role_entity_1 = require("./entities/role.entity");
@@ -32,3 +31,4 @@ __exportStar(require("./strategies/jwt.strategy"), exports);
 __exportStar(require("./decorators/auth.decorator"), exports);
 __exportStar(require("./decorators/feature.decorator"), exports);
 __exportStar(require("./decorators/role.decorator"), exports);
+//# sourceMappingURL=index.js.map

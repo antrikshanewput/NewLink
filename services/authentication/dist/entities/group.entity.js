@@ -58,3 +58,4 @@ __decorate([
 exports.Group = Group = __decorate([
     (0, typeorm_1.Entity)('groups')
 ], Group);
+//# sourceMappingURL=group.entity.js.map

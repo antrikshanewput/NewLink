@@ -9,3 +9,4 @@ exports.ROLE_KEY = 'roles';
 function Role(...roles) {
     return (0, common_1.applyDecorators)((0, common_1.SetMetadata)(exports.ROLE_KEY, roles), (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, role_guard_1.RoleGuard));
 }
+//# sourceMappingURL=role.decorator.js.map

@@ -12,3 +12,4 @@ class EntityRegistry {
 }
 exports.EntityRegistry = EntityRegistry;
 EntityRegistry.registry = {};
+//# sourceMappingURL=index.js.map

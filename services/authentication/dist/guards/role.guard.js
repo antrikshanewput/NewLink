@@ -51,3 +51,4 @@ exports.RoleGuard = RoleGuard = __decorate([
     __metadata("design:paramtypes", [core_1.Reflector,
         authorization_service_1.AuthorizationService])
 ], RoleGuard);
+//# sourceMappingURL=role.guard.js.map

@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { AuthenticationOptionsType } from '../authentication.types';
+import { AuthenticationOptionsType } from '../authentication.type';
 
 @Injectable()
 export class AuthenticationService {

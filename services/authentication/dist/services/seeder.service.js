@@ -34,7 +34,6 @@ let AuthorizationSeederService = class AuthorizationSeederService {
                 await this.featureRepository.save(this.featureRepository.create({ name: featureName }));
             }
         }
-        // Seed permissions (assign features to roles)
         for (const permission of this.config.permissions || []) {
             const role = await this.roleRepository.findOne({
                 where: { name: permission.role },
@@ -61,3 +60,4 @@ exports.AuthorizationSeederService = AuthorizationSeederService = __decorate([
     __metadata("design:paramtypes", [Object, typeorm_1.Repository,
         typeorm_1.Repository])
 ], AuthorizationSeederService);
+//# sourceMappingURL=seeder.service.js.map

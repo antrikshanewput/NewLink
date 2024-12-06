@@ -80,3 +80,4 @@ exports.UserTenant = UserTenant = __decorate([
     (0, typeorm_1.Entity)('user_tenant'),
     (0, typeorm_1.Unique)(['user', 'tenant', 'role'])
 ], UserTenant);
+//# sourceMappingURL=user-tenant.entity.js.map

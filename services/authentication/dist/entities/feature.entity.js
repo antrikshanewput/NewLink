@@ -50,3 +50,4 @@ __decorate([
 exports.Feature = Feature = __decorate([
     (0, typeorm_1.Entity)('features')
 ], Feature);
+//# sourceMappingURL=feature.entity.js.map

@@ -9,7 +9,7 @@ import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { BaseUser } from './entities/user.entity';
 import { DatabaseOptionsType } from '@newlink/database';
-import { AuthenticationOptionsType, validateAuthorizationOptions } from './authentication.types';
+import { AuthenticationOptionsType, validateAuthorizationOptions } from './authentication.type';
 import { Feature } from './entities/feature.entity';
 import { Role } from './entities/role.entity';
 import { Group } from './entities/group.entity';

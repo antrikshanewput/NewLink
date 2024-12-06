@@ -1,6 +1,6 @@
 import { OnApplicationBootstrap } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { AuthenticationOptionsType } from '../authentication.types';
+import { AuthenticationOptionsType } from '../authentication.type';
 export declare class AuthorizationSeederService implements OnApplicationBootstrap {
     private readonly config;
     private readonly roleRepository;

@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { AuthenticationOptionsType } from '../authentication.types';
+import { AuthenticationOptionsType } from '../authentication.type';
 export declare class AuthenticationService {
     private readonly jwtService;
     private readonly options;
