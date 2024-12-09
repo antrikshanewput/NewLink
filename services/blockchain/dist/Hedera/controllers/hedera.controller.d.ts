@@ -19,4 +19,6 @@ export declare class HederaController {
     }): Promise<{
         status: string;
     }>;
+    listAllTransactions(accountId: string, limit: number): Promise<any>;
+    getTransactionDetails(transactionId: string): Promise<any>;
 }

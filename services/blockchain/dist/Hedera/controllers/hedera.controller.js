@@ -77,6 +77,38 @@ let HederaController = HederaController_1 = class HederaController {
             throw new common_1.BadRequestException('Failed to transfer Hbar. Please check your input and try again.');
         }
     }
+    async listAllTransactions(accountId, limit) {
+        try {
+            this.logger.log(`Request to list all transactions for account ${accountId}.`);
+            if (!this.hederaService.isValidAccountId(accountId)) {
+                throw new Error(`Invalid account ID: ${accountId}`);
+            }
+            const transaction = await this.hederaService.listAllTransactions(accountId, limit);
+            return transaction;
+        }
+        catch (error) {
+            this.logger.error(`Error fetching transactions for account ${accountId}: ${error}`);
+            throw error;
+        }
+    }
+    async getTransactionDetails(transactionId) {
+        try {
+            this.logger.log(`Fetching transaction details for ID: ${transactionId}`);
+            if (!transactionId) {
+                this.logger.warn(`Invalid transaction ID provided: ${transactionId}`);
+                throw new common_1.BadRequestException(`Invalid transaction ID format: ${transactionId}`);
+            }
+            const transactionDetails = await this.hederaService.getTransactionDetails(transactionId);
+            this.logger.log(`Transaction details fetched successfully for ID: ${transactionId}`);
+            return transactionDetails;
+        }
+        catch (error) {
+            if (error) {
+                throw new Error(`Error fetching transaction details for ID ${transactionId}: ${error}`);
+            }
+            this.logger.error(`Error fetching transaction details for ID ${transactionId}: ${error}`);
+        }
+    }
 };
 exports.HederaController = HederaController;
 __decorate([
@@ -169,6 +201,91 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HederaController.prototype, "transferHbar", null);
+__decorate([
+    (0, common_1.Get)('transaction/:accountId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'List all transactions for an account',
+        description: 'Fetches and returns all transactions for the specified Hedera account.',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'accountId',
+        type: String,
+        description: 'The ID of the Hedera account (e.g., 0.0.12345).',
+        example: '0.0.12345',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Successfully fetched all transactions for the account.',
+        schema: {
+            example: [
+                {
+                    transactionId: '0.0.12345@1680000000.123456789',
+                    status: 'SUCCESS',
+                    memo: 'Transfer transaction',
+                    transfers: [
+                        { account: '0.0.12345', amount: -1000, isApproval: false },
+                        { account: '0.0.67890', amount: 1000, isApproval: false },
+                    ],
+                    timestamp: '2023-12-01T12:00:00Z',
+                },
+            ],
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Invalid account ID or error during transaction fetch.',
+    }),
+    __param(0, (0, common_1.Param)('accountId')),
+    __param(1, (0, common_1.Param)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Number]),
+    __metadata("design:returntype", Promise)
+], HederaController.prototype, "listAllTransactions", null);
+__decorate([
+    (0, common_1.Get)('transaction/details/:transactionId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get transaction details by transaction ID',
+        description: 'Fetches the details of a specific transaction for the provided transaction ID using Hedera SDK.',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'transactionId',
+        type: String,
+        description: 'The ID of the transaction (e.g., 0.0.12345@1680000000.123456789).',
+        example: '0.0.12345@1680000000.123456789',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Transaction details fetched successfully.',
+        schema: {
+            example: {
+                transactionId: '0.0.12345@1680000000.123456789',
+                status: 'SUCCESS',
+                memo: 'Test transaction memo',
+                transfers: [
+                    { account: '0.0.12345', amount: -1000, isApproval: false },
+                    { account: '0.0.67890', amount: 1000, isApproval: false },
+                ],
+                timestamp: '2023-12-01T12:00:00Z',
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Invalid transaction ID format.',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 404,
+        description: 'Transaction not found.',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: 'Internal server error while fetching transaction details.',
+    }),
+    __param(0, (0, common_1.Param)('transactionId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], HederaController.prototype, "getTransactionDetails", null);
 exports.HederaController = HederaController = HederaController_1 = __decorate([
     (0, common_1.Controller)('hedera'),
     (0, swagger_1.ApiTags)('Hedera'),

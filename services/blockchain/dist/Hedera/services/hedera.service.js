@@ -11,11 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 var HederaService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HederaService = void 0;
 const common_1 = require("@nestjs/common");
 const sdk_1 = require("@hashgraph/sdk");
+const axios_1 = __importDefault(require("axios"));
 let HederaService = HederaService_1 = class HederaService {
     constructor(options) {
         this.options = options;
@@ -23,12 +27,15 @@ let HederaService = HederaService_1 = class HederaService {
         switch (options.network) {
             case 'mainnet':
                 this.client = sdk_1.Client.forMainnet().setOperator(options.account_id, options.private_key);
+                this.mirrorNodeUrl = 'https://mainnet-public.mirrornode.hedera.com';
                 break;
             case 'testnet':
                 this.client = sdk_1.Client.forTestnet().setOperator(options.account_id, options.private_key);
+                this.mirrorNodeUrl = 'https://testnet.mirrornode.hedera.com';
                 break;
             case 'previewnet':
                 this.client = sdk_1.Client.forPreviewnet().setOperator(options.account_id, options.private_key);
+                this.mirrorNodeUrl = 'https://testnet.mirrornode.hedera.com';
                 break;
             default:
                 throw new Error('Invalid network');
@@ -126,6 +133,96 @@ let HederaService = HederaService_1 = class HederaService {
             this.logger.error(`Error validating private key for account ${accountId}:`, error);
             return false;
         }
+    }
+    async listAllTransactions(accountId, limit = 10) {
+        var _a, _b;
+        let url = `${this.mirrorNodeUrl}/api/v1/transactions?account.id=${accountId}&limit=${limit}`;
+        const allTransactions = [];
+        try {
+            this.logger.log(`Fetching all transactions for account ${accountId}...`);
+            while (url) {
+                this.logger.debug(`Fetching transactions from URL: ${url}`);
+                if (!url) {
+                    throw new Error('URL is null or undefined during API request.');
+                }
+                const response = await axios_1.default.get(url);
+                const transactions = response.data.transactions || [];
+                const nextLink = ((_a = response.data.links) === null || _a === void 0 ? void 0 : _a.next) || null;
+                if (transactions.length === 0 && allTransactions.length === 0) {
+                    this.logger.log(`No transactions found for account ${accountId}.`);
+                    break;
+                }
+                allTransactions.push(...transactions.map((tx) => ({
+                    transactionId: tx.transaction_id,
+                    status: tx.result,
+                    memo: tx.memo_base64
+                        ? Buffer.from(tx.memo_base64, 'base64').toString()
+                        : 'No memo',
+                    type: tx.name,
+                    transfers: tx.transfers.map((transfer) => ({
+                        account: transfer.account,
+                        amount: transfer.amount,
+                        isApproval: transfer.is_approval,
+                    })),
+                    timestamp: tx.consensus_timestamp,
+                })));
+                url = nextLink ? `${this.mirrorNodeUrl}${nextLink}` : null;
+            }
+            this.logger.log(`Finished fetching all transactions for account ${accountId}.`);
+            return allTransactions;
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error) && ((_b = error.response) === null || _b === void 0 ? void 0 : _b.status) === 404) {
+                this.logger.warn(`No transactions found for account: ${accountId}`);
+                return [];
+            }
+            else {
+                this.logger.error(`Error fetching transactions for account ${accountId}: ${error}`);
+                throw new Error(`Failed to fetch transactions for account ${accountId}. Please try again later.`);
+            }
+        }
+    }
+    async getTransactionDetails(transactionId) {
+        var _a;
+        try {
+            const mirrorNodeTransactionId = this.convertToMirrorNodeTransactionId(transactionId);
+            const url = `${this.mirrorNodeUrl}/api/v1/transactions/${mirrorNodeTransactionId}`;
+            this.logger.log(`Fetching transaction details from Mirror Node: ${url}`);
+            const response = await axios_1.default.get(url);
+            const transaction = response.data.transactions[0];
+            return {
+                transactionId: transaction.transaction_id,
+                status: transaction.result,
+                memo: transaction.memo_base64
+                    ? Buffer.from(transaction.memo_base64, 'base64').toString()
+                    : 'No memo',
+                transfers: transaction.transfers.map((transfer) => ({
+                    account: transfer.account,
+                    amount: transfer.amount,
+                    isApproval: transfer.is_approval,
+                })),
+                timestamp: transaction.consensus_timestamp,
+            };
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error) && ((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 404) {
+                this.logger.warn(`Transaction with ID ${transactionId} not found on Mirror Node.`);
+                throw new Error(`Transaction with ID ${transactionId} not found on Mirror Node.`);
+            }
+            this.logger.error(`Error fetching transaction details for ID ${transactionId}: ${error}`);
+            throw new Error('Failed to fetch transaction details. Please try again later.');
+        }
+    }
+    convertToMirrorNodeTransactionId(transactionId) {
+        if (transactionId.includes('-') && !transactionId.includes('@')) {
+            return transactionId;
+        }
+        const [accountId, timestamp] = transactionId.split('@');
+        if (!accountId || !timestamp) {
+            throw new Error(`Invalid transaction ID format: ${transactionId}`);
+        }
+        const formattedTimestamp = timestamp.replace('.', '-');
+        return `${accountId}-${formattedTimestamp}`;
     }
 };
 exports.HederaService = HederaService;

@@ -9,27 +9,33 @@ import {
     TransferTransaction,
     TransactionRecordQuery,
     TransactionId,
+    TransactionReceiptQuery,
 
 } from '@hashgraph/sdk';
+import axios from 'axios';
 
 @Injectable()
 export class HederaService {
     private readonly logger = new Logger(HederaService.name);
     private client: Client;
+    private mirrorNodeUrl: string;
 
 
     constructor(@Inject('BLOCKCHAIN_CONFIG') private readonly options: BlockchainOptionsType) {
         switch (options.network) {
             case 'mainnet':
                 this.client = Client.forMainnet().setOperator(options.account_id!, options.private_key!);
+                this.mirrorNodeUrl = 'https://mainnet-public.mirrornode.hedera.com';
 
                 break;
             case 'testnet':
                 this.client = Client.forTestnet().setOperator(options.account_id!, options.private_key!);
+                this.mirrorNodeUrl = 'https://testnet.mirrornode.hedera.com';
 
                 break;
             case 'previewnet':
                 this.client = Client.forPreviewnet().setOperator(options.account_id!, options.private_key!);
+                this.mirrorNodeUrl = 'https://testnet.mirrornode.hedera.com';
 
                 break;
             default:
@@ -136,4 +142,118 @@ export class HederaService {
         }
     }
 
+    async listAllTransactions(accountId: string, limit: number = 10): Promise<any[]> {
+        let url: string | null = `${this.mirrorNodeUrl}/api/v1/transactions?account.id=${accountId}&limit=${limit}`;
+        const allTransactions: any[] = [];
+
+        try {
+            this.logger.log(`Fetching all transactions for account ${accountId}...`);
+
+            while (url) {
+                this.logger.debug(`Fetching transactions from URL: ${url}`);
+
+                if (!url) {
+                    throw new Error('URL is null or undefined during API request.');
+                }
+
+                const response: any = await axios.get(url);
+
+                const transactions = response.data.transactions || [];
+                const nextLink = response.data.links?.next || null;
+
+                if (transactions.length === 0 && allTransactions.length === 0) {
+                    this.logger.log(`No transactions found for account ${accountId}.`);
+                    break;
+                }
+
+                allTransactions.push(
+                    ...transactions.map((tx: any) => ({
+                        transactionId: tx.transaction_id,
+                        status: tx.result,
+                        memo: tx.memo_base64
+                            ? Buffer.from(tx.memo_base64, 'base64').toString()
+                            : 'No memo',
+                        type: tx.name,
+                        transfers: tx.transfers.map((transfer: any) => ({
+                            account: transfer.account,
+                            amount: transfer.amount,
+                            isApproval: transfer.is_approval,
+                        })),
+                        timestamp: tx.consensus_timestamp,
+                    }))
+                );
+
+                url = nextLink ? `${this.mirrorNodeUrl}${nextLink}` : null;
+            }
+
+            this.logger.log(`Finished fetching all transactions for account ${accountId}.`);
+            return allTransactions;
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                this.logger.warn(`No transactions found for account: ${accountId}`);
+                return [];
+            } else {
+                this.logger.error(
+                    `Error fetching transactions for account ${accountId}: ${error}`,
+                );
+                throw new Error(`Failed to fetch transactions for account ${accountId}. Please try again later.`);
+            }
+        }
+    }
+
+    async getTransactionDetails(transactionId: string): Promise<any> {
+        try {
+            const mirrorNodeTransactionId = this.convertToMirrorNodeTransactionId(transactionId);
+
+
+            const url = `${this.mirrorNodeUrl}/api/v1/transactions/${mirrorNodeTransactionId}`;
+            this.logger.log(`Fetching transaction details from Mirror Node: ${url}`);
+
+            const response = await axios.get(url);
+
+            const transaction = response.data.transactions[0];
+
+            return {
+                transactionId: transaction.transaction_id,
+                status: transaction.result,
+                memo: transaction.memo_base64
+                    ? Buffer.from(transaction.memo_base64, 'base64').toString()
+                    : 'No memo',
+                transfers: transaction.transfers.map((transfer: any) => ({
+                    account: transfer.account,
+                    amount: transfer.amount,
+                    isApproval: transfer.is_approval,
+                })),
+                timestamp: transaction.consensus_timestamp,
+            };
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                this.logger.warn(`Transaction with ID ${transactionId} not found on Mirror Node.`);
+                throw new Error(`Transaction with ID ${transactionId} not found on Mirror Node.`);
+            }
+
+            this.logger.error(
+                `Error fetching transaction details for ID ${transactionId}: ${error}`
+            );
+            throw new Error('Failed to fetch transaction details. Please try again later.');
+        }
+    }
+
+    convertToMirrorNodeTransactionId(transactionId: string): string {
+        // Check if the transactionId already uses the Mirror Node format
+        if (transactionId.includes('-') && !transactionId.includes('@')) {
+            // Already in the correct format, return as is
+            return transactionId;
+        }
+
+        // Otherwise, convert from "accountId@timestamp" to "accountId-timestamp"
+        const [accountId, timestamp] = transactionId.split('@');
+
+        if (!accountId || !timestamp) {
+            throw new Error(`Invalid transaction ID format: ${transactionId}`);
+        }
+
+        const formattedTimestamp = timestamp.replace('.', '-');
+        return `${accountId}-${formattedTimestamp}`;
+    }
 }
