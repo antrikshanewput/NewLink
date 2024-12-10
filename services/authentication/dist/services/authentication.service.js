@@ -17,10 +17,11 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("typeorm");
 let AuthenticationService = class AuthenticationService {
-    constructor(jwtService, options, userRepository) {
+    constructor(jwtService, options, userRepository, userTenantRepository) {
         this.jwtService = jwtService;
         this.options = options;
         this.userRepository = userRepository;
+        this.userTenantRepository = userTenantRepository;
     }
     async findUserByAuthField(value) {
         const field = this.options.authenticationField;
@@ -35,7 +36,35 @@ let AuthenticationService = class AuthenticationService {
         return null;
     }
     async login(user) {
-        const payload = { [this.options.authenticationField]: user[this.options.authenticationField], sub: user };
+        const userTenants = await this.userTenantRepository.find({
+            where: { user: { id: user.id } },
+            relations: ['tenant', 'role', 'features'],
+        });
+        const roles = {};
+        const permissions = {};
+        for (const userTenant of userTenants) {
+            const tenantId = userTenant.tenant.id;
+            if (!roles[tenantId]) {
+                roles[tenantId] = [];
+            }
+            if (!roles[tenantId].includes(userTenant.role.name)) {
+                roles[tenantId].push(userTenant.role.name);
+            }
+            if (!permissions[tenantId]) {
+                permissions[tenantId] = [];
+            }
+            for (const feature of userTenant.features) {
+                if (!permissions[tenantId].includes(feature.name)) {
+                    permissions[tenantId].push(feature.name);
+                }
+            }
+        }
+        const payload = {
+            [this.options.authenticationField]: user[this.options.authenticationField],
+            sub: user.id,
+            roles,
+            permissions,
+        };
         await this.userRepository.update(user.id, { last_login: new Date() });
         return {
             access_token: this.jwtService.sign(payload),
@@ -60,6 +89,8 @@ exports.AuthenticationService = AuthenticationService = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, common_1.Inject)('AUTHENTICATION_OPTIONS')),
     __param(2, (0, common_1.Inject)('USER_REPOSITORY')),
-    __metadata("design:paramtypes", [jwt_1.JwtService, Object, typeorm_1.Repository])
+    __param(3, (0, common_1.Inject)('USERTENANT_REPOSITORY')),
+    __metadata("design:paramtypes", [jwt_1.JwtService, Object, typeorm_1.Repository,
+        typeorm_1.Repository])
 ], AuthenticationService);
 //# sourceMappingURL=authentication.service.js.map

@@ -5,7 +5,8 @@ export declare class AuthenticationService {
     private readonly jwtService;
     private readonly options;
     private readonly userRepository;
-    constructor(jwtService: JwtService, options: AuthenticationOptionsType, userRepository: Repository<any>);
+    private readonly userTenantRepository;
+    constructor(jwtService: JwtService, options: AuthenticationOptionsType, userRepository: Repository<any>, userTenantRepository: Repository<any>);
     findUserByAuthField(value: string): Promise<any | null>;
     validateUser(authFieldValue: string, password: string): Promise<any | null>;
     login(user: any): Promise<{

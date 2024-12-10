@@ -7,12 +7,14 @@ import {
     AccountBalanceQuery,
     AccountCreateTransaction,
     TransferTransaction,
-    TransactionRecordQuery,
-    TransactionId,
-    TransactionReceiptQuery,
+    TokenCreateTransaction,
+    TokenSupplyType,
+    TokenType,
+    TransactionReceipt,
 
 } from '@hashgraph/sdk';
 import axios from 'axios';
+import { BlockchainOptionsType } from '../../blockchain.type';
 
 @Injectable()
 export class HederaService {
@@ -239,19 +241,78 @@ export class HederaService {
         }
     }
 
-    convertToMirrorNodeTransactionId(transactionId: string): string {
-        // Check if the transactionId already uses the Mirror Node format
-        if (transactionId.includes('-') && !transactionId.includes('@')) {
-            // Already in the correct format, return as is
-            return transactionId;
-        }
+    async createToken(tokenDetails: {
+        name: string;
+        symbol: string;
+        treasuryAccountId: string;
+        treasuryPrivateKey: string;
+        initialSupply: number;
+        decimals: number;
+        tokenType?: TokenType;
+        supplyType?: TokenSupplyType;
+        maxSupply?: number;
+    }): Promise<{ tokenId: string; receipt: TransactionReceipt }> {
+        try {
+            this.logger.log('Creating a new token on the Hedera network...');
 
-        // Otherwise, convert from "accountId@timestamp" to "accountId-timestamp"
+            const {
+                name,
+                symbol,
+                treasuryAccountId,
+                treasuryPrivateKey,
+                initialSupply,
+                decimals,
+                tokenType = TokenType.FungibleCommon,
+                supplyType = TokenSupplyType.Infinite,
+                maxSupply,
+            } = tokenDetails;
+
+            if (!name || !symbol || !treasuryAccountId || !treasuryPrivateKey) {
+                throw new Error('Missing required token details (name, symbol, treasuryAccountId, treasuryPrivateKey).');
+            }
+            if (supplyType === TokenSupplyType.Finite && maxSupply == null) {
+                throw new Error('Max supply is required when supply type is FINITE.');
+            }
+
+            const treasuryKey = PrivateKey.fromString(treasuryPrivateKey);
+
+            const tokenCreateTx = new TokenCreateTransaction()
+                .setTokenName(name)
+                .setTokenSymbol(symbol)
+                .setTreasuryAccountId(AccountId.fromString(treasuryAccountId))
+                .setInitialSupply(initialSupply)
+                .setDecimals(decimals)
+                .setTokenType(tokenType)
+                .setSupplyType(supplyType);
+
+            if (supplyType === TokenSupplyType.Finite) {
+                tokenCreateTx.setMaxSupply(maxSupply!);
+            }
+
+            const signedTx = await tokenCreateTx.freezeWith(this.client).sign(treasuryKey);
+
+            const response = await signedTx.execute(this.client);
+
+            const receipt = await response.getReceipt(this.client);
+
+            const tokenId = receipt.tokenId?.toString()!;
+
+            this.logger.log(`Token created successfully with ID: ${tokenId}`);
+
+            return { tokenId, receipt };
+        } catch (error) {
+            this.logger.error(`Error creating token: ${error}`);
+            throw new Error('Failed to create token. Please check the input and try again.');
+        }
+    }
+
+    convertToMirrorNodeTransactionId(transactionId: string): string {
+        if (transactionId.includes('-') && !transactionId.includes('@')) return transactionId;
+
+
         const [accountId, timestamp] = transactionId.split('@');
 
-        if (!accountId || !timestamp) {
-            throw new Error(`Invalid transaction ID format: ${transactionId}`);
-        }
+        if (!accountId || !timestamp) throw new Error(`Invalid transaction ID format: ${transactionId}`);
 
         const formattedTimestamp = timestamp.replace('.', '-');
         return `${accountId}-${formattedTimestamp}`;

@@ -2,10 +2,14 @@ import { DynamicModule, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { HederaService } from "./Hedera/services/hedera.service";
 import { HederaController } from "./Hedera/controllers/hedera.controller";
+import { BlockchainOptionsType, BlockchainTokenTypes } from "./blockchain.type";
 
 @Module({})
 export class BlockchainModule {
+    private static createdTokens: any[] = [];
+
     static resolveConfig(options: BlockchainOptionsType, configService: ConfigService): BlockchainOptionsType {
+
         options.blockchain = options.blockchain || configService.get<string>('BLOCKCHAIN', 'hedera');
         options.network = options.network || configService.get<string>('BLOCKCHAIN_NETWORK', 'testnet') as BlockchainOptionsType['network'];
         options.account_id = options.account_id || configService.get<string>('BLOCKCHAIN_ACCOUNT_ID');
@@ -21,14 +25,21 @@ export class BlockchainModule {
         return options;
     }
 
-    static register(options: BlockchainOptionsType): DynamicModule {
+
+
+    static register(options: BlockchainOptionsType, tokens: BlockchainTokenTypes[]): DynamicModule {
         options = this.resolveConfig(options, new ConfigService());
-        const importsArray = [ConfigModule.forRoot()];
+
+
+        const importsArray = [
+            ConfigModule.forRoot(),
+        ];
         const exportsArray: any[] = ['BLOCKCHAIN_CONFIG'];
         const providersArray: any[] = [{
             provide: 'BLOCKCHAIN_CONFIG',
             useValue: options,
-        },];
+        },
+        ];
         const controllersArray: any[] = [];
         switch (options.blockchain) {
             case 'hedera':

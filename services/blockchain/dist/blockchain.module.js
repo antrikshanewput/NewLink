@@ -29,12 +29,15 @@ let BlockchainModule = BlockchainModule_1 = class BlockchainModule {
     }
     static register(options) {
         options = this.resolveConfig(options, new config_1.ConfigService());
-        const importsArray = [config_1.ConfigModule.forRoot()];
+        const importsArray = [
+            config_1.ConfigModule.forRoot(),
+        ];
         const exportsArray = ['BLOCKCHAIN_CONFIG'];
         const providersArray = [{
                 provide: 'BLOCKCHAIN_CONFIG',
                 useValue: options,
-            },];
+            },
+        ];
         const controllersArray = [];
         switch (options.blockchain) {
             case 'hedera':

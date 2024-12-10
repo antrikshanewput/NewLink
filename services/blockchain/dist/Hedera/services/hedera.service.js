@@ -213,14 +213,47 @@ let HederaService = HederaService_1 = class HederaService {
             throw new Error('Failed to fetch transaction details. Please try again later.');
         }
     }
+    async createToken(tokenDetails) {
+        var _a;
+        try {
+            this.logger.log('Creating a new token on the Hedera network...');
+            const { name, symbol, treasuryAccountId, treasuryPrivateKey, initialSupply, decimals, tokenType = sdk_1.TokenType.FungibleCommon, supplyType = sdk_1.TokenSupplyType.Infinite, maxSupply, } = tokenDetails;
+            if (!name || !symbol || !treasuryAccountId || !treasuryPrivateKey) {
+                throw new Error('Missing required token details (name, symbol, treasuryAccountId, treasuryPrivateKey).');
+            }
+            if (supplyType === sdk_1.TokenSupplyType.Finite && maxSupply == null) {
+                throw new Error('Max supply is required when supply type is FINITE.');
+            }
+            const treasuryKey = sdk_1.PrivateKey.fromString(treasuryPrivateKey);
+            const tokenCreateTx = new sdk_1.TokenCreateTransaction()
+                .setTokenName(name)
+                .setTokenSymbol(symbol)
+                .setTreasuryAccountId(sdk_1.AccountId.fromString(treasuryAccountId))
+                .setInitialSupply(initialSupply)
+                .setDecimals(decimals)
+                .setTokenType(tokenType)
+                .setSupplyType(supplyType);
+            if (supplyType === sdk_1.TokenSupplyType.Finite) {
+                tokenCreateTx.setMaxSupply(maxSupply);
+            }
+            const signedTx = await tokenCreateTx.freezeWith(this.client).sign(treasuryKey);
+            const response = await signedTx.execute(this.client);
+            const receipt = await response.getReceipt(this.client);
+            const tokenId = (_a = receipt.tokenId) === null || _a === void 0 ? void 0 : _a.toString();
+            this.logger.log(`Token created successfully with ID: ${tokenId}`);
+            return { tokenId, receipt };
+        }
+        catch (error) {
+            this.logger.error(`Error creating token: ${error}`);
+            throw new Error('Failed to create token. Please check the input and try again.');
+        }
+    }
     convertToMirrorNodeTransactionId(transactionId) {
-        if (transactionId.includes('-') && !transactionId.includes('@')) {
+        if (transactionId.includes('-') && !transactionId.includes('@'))
             return transactionId;
-        }
         const [accountId, timestamp] = transactionId.split('@');
-        if (!accountId || !timestamp) {
+        if (!accountId || !timestamp)
             throw new Error(`Invalid transaction ID format: ${transactionId}`);
-        }
         const formattedTimestamp = timestamp.replace('.', '-');
         return `${accountId}-${formattedTimestamp}`;
     }
