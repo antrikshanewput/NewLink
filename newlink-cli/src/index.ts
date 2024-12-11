@@ -10,6 +10,9 @@ async function main() {
     let command: string = 'npm ';
     let imports: string[] = [`import { ConfigModule } from '@nestjs/config';`];
     let modules: string[] = ['ConfigModule.forRoot({ isGlobal: true })'];
+
+    const envVars: Record<string, string> = {};
+
     // Step 1: Ask for Project Name
     const { projectName } = await inquirer.prompt([
         {
@@ -160,6 +163,11 @@ async function main() {
             console.log(chalk.red('Error: Failed to install @newlink/notification.'));
             shell.exit(1);
         }
+        else {
+            imports.push(`import { NotificationModule } from '@newlink/notification';`);
+            modules.push(`NotificationModule.register({})`);
+            console.log(chalk.green('Added Notification to app.module.ts'));
+        }
     }
 
     // Step 3: Install Additional Dependencies
@@ -188,7 +196,22 @@ async function main() {
         shell.exit(1);
     }
 
-    // Step 5: Done
+    // Step 5: Generate .env File
+    console.log(chalk.blue('\nGenerating .env file...'));
+    const envPath = path.join(projectPath, '.env');
+    const envContent = Object.entries(envVars)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('\n');
+
+    try {
+        await fs.writeFile(envPath, envContent, 'utf-8');
+        console.log(chalk.green('.env file generated successfully.'));
+    } catch (error) {
+        console.log(chalk.red('Error generating .env file:'), error);
+        shell.exit(1);
+    }
+
+    // Step 6: Done
     console.log(chalk.green(`\nNestJS project ${projectName} created successfully!`));
 }
 

@@ -6,10 +6,8 @@ import { BlockchainOptionsType, BlockchainTokenTypes } from "./blockchain.type";
 
 @Module({})
 export class BlockchainModule {
-    private static createdTokens: any[] = [];
 
     static resolveConfig(options: BlockchainOptionsType, configService: ConfigService): BlockchainOptionsType {
-
         options.blockchain = options.blockchain || configService.get<string>('BLOCKCHAIN', 'hedera');
         options.network = options.network || configService.get<string>('BLOCKCHAIN_NETWORK', 'testnet') as BlockchainOptionsType['network'];
         options.account_id = options.account_id || configService.get<string>('BLOCKCHAIN_ACCOUNT_ID');
@@ -27,7 +25,7 @@ export class BlockchainModule {
 
 
 
-    static register(options: BlockchainOptionsType, tokens: BlockchainTokenTypes[]): DynamicModule {
+    static register(options: BlockchainOptionsType): DynamicModule {
         options = this.resolveConfig(options, new ConfigService());
 
 
