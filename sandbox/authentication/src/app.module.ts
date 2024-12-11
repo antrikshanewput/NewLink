@@ -10,7 +10,6 @@ import { AuthorizationModule } from '@newlink/authorization';
       {
         authenticationField: 'phone',
         registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
-        // entities: [User],
         roles: ['Admin', 'Editor', 'Viewer'],
         features: ['Create Post', 'Edit Post', 'View Post'],
         permissions: [

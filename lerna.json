@@ -1,5 +1,5 @@
 {
 	"$schema": "node_modules/lerna/schemas/lerna-schema.json",
-	"packages": ["common/*", "services/*"],
-	"version": "0.0.0"
+	"packages": ["common/*", "newlink-cli", "services/*", "sandbox/*"],
+	"version": "independent"
 }

@@ -1,16 +1,13 @@
 {
-  "name": "newlink",
-  "private": true,
-  "workspaces": [
-    "common/*",
-    "services/*",
-    "sandbox/*"
-  ],
-  "dependencies": {
-    "@nestjs/microservices": "^10.4.6",
-    "@newlink/authentication": "^1.0.0"
-  },
-  "devDependencies": {
-    "lerna": "^8.1.9"
-  }
+	"name": "newlink",
+	"private": true,
+	"workspaces": [
+		"common/*",
+		"services/*",
+		"newlink-cli",
+		"sandbox/*"
+	],
+	"devDependencies": {
+		"lerna": "^8.1.9"
+	}
 }

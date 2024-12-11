@@ -27,7 +27,7 @@ let BlockchainModule = BlockchainModule_1 = class BlockchainModule {
         }
         return options;
     }
-    static register(options) {
+    static register(options, tokens) {
         options = this.resolveConfig(options, new config_1.ConfigService());
         const importsArray = [
             config_1.ConfigModule.forRoot(),
@@ -58,6 +58,7 @@ let BlockchainModule = BlockchainModule_1 = class BlockchainModule {
     }
 };
 exports.BlockchainModule = BlockchainModule;
+BlockchainModule.createdTokens = [];
 exports.BlockchainModule = BlockchainModule = BlockchainModule_1 = __decorate([
     (0, common_1.Module)({})
 ], BlockchainModule);
