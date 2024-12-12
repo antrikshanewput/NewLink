@@ -113,6 +113,16 @@ async function main() {
                 packageName: '@newlink/notification',
                 importStatement: `import { NotificationModule } from '@newlink/notification';`,
                 moduleRegistration: `NotificationModule.register({})`,
+                envVars: {
+                    EMAIL_HOST: 'smtp.mailtrap.io',
+                    EMAIL_PORT: '587',
+                    EMAIL_USER: 'your_email',
+                    EMAIL_PASS: 'your_password',
+                    EMAIL_FROM: 'your_email',
+                    PLIVO_AUTH_ID: 'plivo_auth_id',
+                    PLIVO_AUTH_TOKEN: 'plivo_auth_token',
+                    PLIVO_FROM_NUMBER: 'plivo_from_number',
+                },
             },
         ];
 
@@ -124,12 +134,12 @@ async function main() {
             // Enhanced installation with error handling
             try {
                 // First, try npm link
-                const linkResult = shell.exec(`npm link ${module.packageName}`);
+                const linkResult = shell.exec(`npm link ${module.packageName}`, { silent: true });
 
                 // If npm link fails, try alternative installation
                 if (linkResult.code !== 0) {
                     console.warn(chalk.yellow(`npm link failed for ${module.packageName}. Trying alternative installation.`));
-                    const installResult = shell.exec(`npm install ${module.packageName}`);
+                    const installResult = shell.exec(`npm install ${module.packageName}`, { silent: true });
 
                     if (installResult.code !== 0) {
                         throw new Error(`Failed to install ${module.packageName}`);
@@ -164,6 +174,8 @@ async function main() {
         }
 
         // Modify App Module
+        console.log(chalk.blue(`\nImplementing Changes to AppModule...`));
+
         const appModulePath = path.join(projectPath, 'src', 'app.module.ts');
         let appModuleContent = await fs.readFile(appModulePath, 'utf-8');
 
@@ -187,7 +199,26 @@ async function main() {
         await fs.writeFile(appModulePath, appModuleContent, 'utf-8');
         console.log(chalk.green('AppModule modified successfully.'));
 
+        // Implement Swagger Module
+        const mainPath = path.join(projectPath, 'src', 'main.ts');
+        let mainContent = await fs.readFile(mainPath, 'utf-8');
+
+        console.log(chalk.blue(`\nImplementing Swagger...`));
+
+        shell.exec(`npm install @nestjs/swagger`, { silent: true });
+
+        mainContent = mainContent.replace(`import { AppModule } from './app.module';`, `import { AppModule } from './app.module';\nimport { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';`);
+
+        mainContent = mainContent.replace(`const app = await NestFactory.create(AppModule);`, `const app = await NestFactory.create(AppModule);\nconst config = new DocumentBuilder().setTitle('${projectName} API Doc').setDescription('The ${projectName} API description').setVersion('1.0').build();\nconst document = SwaggerModule.createDocument(app, config);\nSwaggerModule.setup('api', app, document);`)
+
+        await fs.writeFile(mainPath, mainContent, 'utf-8');
+
+        console.log(chalk.green('Swagger Implemented successfully.'));
+
+
         // Consolidated .env generation
+        console.log(chalk.blue(`\nGenerating .env file...`));
+
         const envVars: Record<string, string> = {
             ...selectedModules.reduce((acc, module) => ({
                 ...acc,

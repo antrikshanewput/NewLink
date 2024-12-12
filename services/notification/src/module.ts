@@ -4,17 +4,19 @@ import { PlivoService } from './sms/plivo.service';
 import * as nodemailer from 'nodemailer';
 import * as plivo from 'plivo';
 import { ConfigService } from '@nestjs/config';
-
+import { NotificationController } from './controllers/notification.controller';
 export interface NotificationModuleOptions {
     email?: {
         host?: string;
         port?: number;
         user?: string;
         pass?: string;
+        from?: string;
     };
     sms?: {
         authId?: string;
         authToken?: string;
+        from?: string;
     };
 }
 
@@ -31,11 +33,13 @@ export class NotificationModule {
         options.email.port = options.email.port || configService.get<number>('EMAIL_PORT', 587);
         options.email.user = options.email.user || configService.get<string>('EMAIL_USER', '');
         options.email.pass = options.email.pass || configService.get<string>('EMAIL_PASS', '');
+        options.email.from = options.email.from || configService.get<string>('EMAIL_FROM', '');
 
         // Resolve SMS Configuration
         options.sms = options.sms || {};
         options.sms.authId = options.sms.authId || configService.get<string>('PLIVO_AUTH_ID', '');
         options.sms.authToken = options.sms.authToken || configService.get<string>('PLIVO_AUTH_TOKEN', '');
+        options.sms.from = options.sms.from || configService.get<string>('PLIVO_FROM_NUMBER', '');
 
         // Validate Email Config
         if (options.email.host && (!options.email.user || !options.email.pass)) {
@@ -64,13 +68,17 @@ export class NotificationModule {
                     return nodemailer.createTransport({
                         host: options.email!.host,
                         port: options.email!.port,
-                        secure: options.email!.port === 465, // true for port 465
+                        secure: options.email!.port === 465,
                         auth: {
                             user: options.email!.user,
                             pass: options.email!.pass,
                         },
                     });
                 },
+            });
+            providers.push({
+                provide: 'EMAIL_FROM',
+                useValue: options.email!.user,
             });
             providers.push(EmailService);
             exports.push(EmailService);
@@ -81,7 +89,12 @@ export class NotificationModule {
                 provide: 'PLIVO_CLIENT',
                 useFactory: () => new plivo.Client(options.sms!.authId, options.sms!.authToken),
             });
+            providers.push({
+                provide: 'PLIVO_FROM_NUMBER',
+                useValue: options.sms!.from,
+            })
             providers.push(PlivoService);
+
             exports.push(PlivoService);
         }
 
@@ -89,53 +102,7 @@ export class NotificationModule {
             module: NotificationModule,
             providers: [...providers],
             exports: [...exports],
-        };
-    }
-
-    static registerAsync(optionsProvider: {
-        useFactory: (
-            configService: ConfigService,
-        ) => NotificationModuleOptions | Promise<NotificationModuleOptions>;
-        inject: any[];
-    }): DynamicModule {
-        const providers = [
-            {
-                provide: 'NOTIFICATION_OPTIONS',
-                useFactory: optionsProvider.useFactory,
-                inject: optionsProvider.inject,
-            },
-            {
-                provide: 'EMAIL_TRANSPORTER',
-                useFactory: (options: NotificationModuleOptions) => {
-                    if (!options.email) return null;
-                    return nodemailer.createTransport({
-                        host: options.email.host,
-                        port: options.email.port,
-                        secure: options.email.port === 465, // true for port 465
-                        auth: {
-                            user: options.email.user,
-                            pass: options.email.pass,
-                        },
-                    });
-                },
-                inject: ['NOTIFICATION_OPTIONS'],
-            },
-            {
-                provide: 'PLIVO_CLIENT',
-                useFactory: (options: NotificationModuleOptions) => {
-                    if (!options.sms) return null;
-                    return new plivo.Client(options.sms.authId, options.sms.authToken);
-                },
-                inject: ['NOTIFICATION_OPTIONS'],
-            },
-            EmailService,
-            PlivoService,
-        ];
-
-        return {
-            module: NotificationModule,
-            providers,
-            exports: [EmailService, PlivoService],
+            controllers: [NotificationController],
         };
     }
 }

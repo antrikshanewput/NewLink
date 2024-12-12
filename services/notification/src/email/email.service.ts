@@ -3,11 +3,11 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-    constructor(@Inject('SMTP_TRANSPORTER') private transporter: nodemailer.Transporter) { }
+    constructor(@Inject('EMAIL_TRANSPORTER') private transporter: nodemailer.Transporter, @Inject('EMAIL_FROM') private email: string) { }
 
-    async sendMail(from: string, to: string, subject: string, text: string, html?: string): Promise<void> {
+    async sendMail(to: string, subject: string, text: string, html?: string): Promise<void> {
         const mailOptions = {
-            from,
+            from: this.email,
             to,
             subject,
             text,
