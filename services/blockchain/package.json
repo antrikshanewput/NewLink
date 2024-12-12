@@ -10,7 +10,10 @@
 		"build": "nest build"
 	},
 	"dependencies": {
-		"@hashgraph/sdk": "^2.26.0",
+		"@newlink/authorization": "^0.0.1",
+		"@hashgraph/sdk": "^2.26.0"
+	},
+	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",
 		"@nestjs/core": "^10.0.0"
 	},

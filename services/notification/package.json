@@ -10,10 +10,13 @@
 		"build": "nest build"
 	},
 	"dependencies": {
+		"@newlink/authorization": "^0.0.1",
+		"plivo": "^4.69.2",
+		"nodemailer": "^6.9.16"
+	},
+	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",
-		"@nestjs/core": "^10.0.0",
-		"nodemailer": "^6.9.16",
-		"plivo": "^4.69.2"
+		"@nestjs/core": "^10.0.0"
 	},
 	"devDependencies": {
 		"@types/nodemailer": "^6.4.17",

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { AuthenticationModule } from '@newlink/authentication';
-import { AuthorizationModule } from '@newlink/authorization';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

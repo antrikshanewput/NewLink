@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { getDataSourceToken, TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AuthenticationService } from './services/authentication.service';
 import { AuthController } from './controllers/auth.controller';
@@ -18,6 +18,7 @@ import { AuthorizationService } from './services/authorization.service';
 import { AuthorizationSeederService } from './services/seeder.service';
 import { EntityRegistry } from './entities';
 import { AuthorizationModule } from '@newlink/authorization';
+
 @Module({})
 export class AuthenticationModule {
   static async resolveConfig(options: AuthenticationOptionsType): Promise<AuthenticationOptionsType> {
@@ -66,47 +67,44 @@ export class AuthenticationModule {
     return options;
   }
 
-  static async resolveDatabaseConfig(database: DatabaseOptionsType, configService: ConfigService, config: AuthenticationOptionsType): Promise<TypeOrmModuleOptions> {
+  static async resolveDatabaseConfig(
+    database: DatabaseOptionsType,
+    configService: ConfigService,
+    config: AuthenticationOptionsType
+  ): Promise<TypeOrmModuleOptions> {
     return {
-      type: (database.type || configService.get<string>('AUTH_DB_TYPE') || configService.get<string>('DB_TYPE') || 'postgres') as DatabaseOptionsType['type'],
-      host: database.host || configService.get<string>('AUTH_DB_HOST') || configService.get<string>('DB_HOST') || 'localhost',
-      port: (database.port || configService.get<number>('AUTH_DB_PORT') || configService.get<string>('DB_PORT') || 5432) as number,
-      username: database.username || configService.get<string>('AUTH_DB_USERNAME') || configService.get<string>('DB_USERNAME') || 'postgres',
-      password: database.password || configService.get<string>('AUTH_DB_PASSWORD') || configService.get<string>('DB_PASSWORD') || 'postgres',
-      database: database.database || configService.get<string>('AUTH_DB_NAME') || configService.get<string>('DB_NAME') || 'postgres',
+      type: (database.type || configService.get<string>('AUTH_DB_TYPE') || configService.get<string>('DB_TYPE', 'postgres')) as DatabaseOptionsType['type'],
+      host: database.host || configService.get<string>('AUTH_DB_HOST') || configService.get<string>('DB_HOST', 'localhost'),
+      port: (database.port || configService.get<number>('AUTH_DB_PORT') || configService.get<number>('DB_PORT', 5432)) as number,
+      username: database.username || configService.get<string>('AUTH_DB_USERNAME') || configService.get<string>('DB_USERNAME', 'postgres'),
+      password: database.password || configService.get<string>('AUTH_DB_PASSWORD') || configService.get<string>('DB_PASSWORD', 'postgres'),
+      database: database.database || configService.get<string>('AUTH_DB_NAME') || configService.get<string>('DB_NAME', 'postgres'),
       entities: config.entities!,
-      synchronize: database.synchronize ?? configService.get<boolean>('DB_SYNCHRONIZE') ?? false,
+      synchronize: database.synchronize ?? configService.get<boolean>('DB_SYNCHRONIZE', false) ?? false,
+      autoLoadEntities: true,
     } as TypeOrmModuleOptions;
   }
 
   static async register(configuration: AuthenticationOptionsType, db: DatabaseOptionsType = {}): Promise<DynamicModule> {
     const config = await this.resolveConfig(configuration);
-    const dataSourceToken = getDataSourceToken('authenticationDataSource');
-
-
     return {
       module: AuthenticationModule,
       imports: [
-        ConfigModule.forRoot(),
-        PassportModule,
+        ConfigModule.forRoot({ isGlobal: true }),
+        PassportModule.register({}),
         AuthorizationModule.register(),
         TypeOrmModule.forRootAsync({
-          name: 'authenticationDataSource',
           imports: [ConfigModule],
           inject: [ConfigService],
           useFactory: async (configService: ConfigService) =>
             await this.resolveDatabaseConfig(db, configService, config),
         }),
-        TypeOrmModule.forFeature(config.entities!, 'authenticationDataSource'),
+        TypeOrmModule.forFeature(config.entities!),
       ],
       providers: [
         {
           provide: 'AUTHENTICATION_OPTIONS',
           useValue: config,
-        },
-        {
-          provide: 'AUTHENTICATION_DATA_SOURCE',
-          useExisting: dataSourceToken,
         },
         AuthenticationService,
         AuthorizationService,
@@ -115,14 +113,15 @@ export class AuthenticationModule {
         ...config.entities!.map((entity) => ({
           provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_REPOSITORY`,
           useFactory: (dataSource: DataSource) => dataSource.getRepository(entity),
-          inject: [dataSourceToken],
+          inject: [DataSource],
         })),
       ],
       controllers: [AuthController],
       exports: [
         AuthenticationService,
         AuthorizationService,
-        AuthorizationModule
+        AuthorizationModule,
+        TypeOrmModule
       ],
     };
   }
