@@ -1,12 +1,18 @@
 {
-	"name": "newlink",
+	"name": "newlink-monorepo",
 	"private": true,
 	"workspaces": [
-		"common/*",
-		"services/*",
 		"cli",
-		"sandbox/*"
+		"common/*",
+		"services/*"
 	],
+	"scripts": {
+		"build": "lerna run build",
+		"clean": "lerna exec -- rm -rf dist",
+		"rebuild": "npm run clean && npm run build",
+		"bootstrap": "lerna bootstrap",
+		"publish": "lerna publish"
+	},
 	"devDependencies": {
 		"lerna": "^8.1.9"
 	}

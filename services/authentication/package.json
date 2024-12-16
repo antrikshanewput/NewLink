@@ -1,6 +1,6 @@
 {
 	"name": "@newlink/authentication",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -10,7 +10,7 @@
 		"build": "nest build"
 	},
 	"dependencies": {
-		"@newlink/authorization": "^0.0.1",
+		"@newlink/authorization": "^1.0.0",
 		"@newlink/cache": "^1.0.0",
 		"@newlink/rate-limiter": "^1.0.0",
 		"argon2": "^0.41.1",
@@ -36,5 +36,8 @@
 		"ts-node": "^10.9.1",
 		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.1.3"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

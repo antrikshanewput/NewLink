@@ -2,7 +2,7 @@ import { DynamicModule, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { HederaService } from "./Hedera/services/hedera.service";
 import { HederaController } from "./Hedera/controllers/hedera.controller";
-import { BlockchainOptionsType, BlockchainTokenTypes } from "./blockchain.type";
+import { BlockchainOptionsType } from "./blockchain.type";
 
 @Module({})
 export class BlockchainModule {

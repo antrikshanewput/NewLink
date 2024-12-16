@@ -1,6 +1,6 @@
 {
 	"name": "@newlink/blockchain",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -10,17 +10,21 @@
 		"build": "nest build"
 	},
 	"dependencies": {
-		"@newlink/authorization": "^0.0.1",
-		"@hashgraph/sdk": "^2.26.0"
+		"@hashgraph/sdk": "^2.26.0",
+		"@newlink/authorization": "^1.0.0"
 	},
 	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",
-		"@nestjs/core": "^10.0.0"
+		"@nestjs/core": "^10.0.0",
+		"@nestjs/swagger": "^8.1.0"
 	},
 	"devDependencies": {
 		"ts-loader": "^9.4.3",
 		"ts-node": "^10.9.1",
 		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.1.3"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

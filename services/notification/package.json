@@ -1,6 +1,6 @@
 {
 	"name": "@newlink/notification",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -10,7 +10,7 @@
 		"build": "nest build"
 	},
 	"dependencies": {
-		"@newlink/authorization": "^0.0.1",
+		"@newlink/authorization": "^1.0.0",
 		"plivo": "^4.69.2",
 		"nodemailer": "^6.9.16"
 	},
@@ -24,5 +24,8 @@
 		"ts-node": "^10.9.1",
 		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.1.3"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

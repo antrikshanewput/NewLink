@@ -1,6 +1,6 @@
 {
-	"name": "newlink",
-	"version": "0.0.1",
+	"name": "@newlink/cli",
+	"version": "1.0.0",
 	"main": "dist/index.js",
 	"type": "module",
 	"bin": {
@@ -20,5 +20,8 @@
 		"@types/fs-extra": "^11.0.4",
 		"@types/shelljs": "^0.8.15",
 		"typescript": "^5.7.2"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

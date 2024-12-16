@@ -53,7 +53,7 @@ export class HederaService {
 
             const transaction = await new AccountCreateTransaction()
                 .setKey(publicKey)
-                .setInitialBalance(Hbar.fromTinybars(this.options.initial_balance))
+                .setInitialBalance(Hbar.fromTinybars(this.options.initial_balance ?? 0))
                 .execute(this.client);
 
             const receipt = await transaction.getReceipt(this.client);

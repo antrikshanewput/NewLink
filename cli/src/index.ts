@@ -101,7 +101,7 @@ async function projectNameInput(prompt: string): Promise<{ projectName: string }
             type: 'input',
             name: 'projectName',
             message: prompt,
-            validate: (input) => {
+            validate: (input: string) => {
                 const validNameRegex = /^[a-z0-9-_]+$/i;
                 if (!input) return 'Project name is required!';
                 if (!validNameRegex.test(input))
@@ -148,7 +148,6 @@ async function generateEnvFile(projectPath: string, envVars: Record<string, stri
     await fs.writeFile(envPath, envContent, 'utf-8');
     console.log(chalk.green('.env file generated successfully.'));
 }
-
 
 async function modifyAppModule(projectPath: string, selectedModules: ModuleConfig[]) {
     console.log(chalk.blue(`\nImplementing Changes to AppModule...`));
@@ -269,7 +268,7 @@ async function Microservices() {
 
         // Initialize a new npm project if none exists
         if (!shell.test('-e', 'package.json')) {
-            shell.exec('npm init -y');
+            shell.exec('npm init -y', { silent: true });
         }
 
         // Install lerna globally (if not installed, or do local usage via npx)
@@ -296,7 +295,7 @@ async function Microservices() {
 
             shell.cd(path.join(rootPath, 'packages'));
 
-            const createResult = shell.exec(`npx @nestjs/cli new ${serviceName} --package-manager npm --directory /packages/${serviceName}`, { silent: true });
+            const createResult = shell.exec(`npx @nestjs/cli new ${serviceName} --package-manager npm --directory packages/${serviceName}`, { silent: true });
             if (createResult.code !== 0) {
                 throw new Error(`Failed to create NestJS microservice project for ${module.name}.`);
             }
