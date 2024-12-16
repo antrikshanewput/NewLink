@@ -1,5 +1,5 @@
 {
-	"name": "@newlink/blockchain",
+	"name": "@newput-newlink/blockchain",
 	"version": "1.0.0",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"@hashgraph/sdk": "^2.26.0",
-		"@newlink/authorization": "^1.0.0"
+		"@newput-newlink/authorization": "^1.0.0"
 	},
 	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",

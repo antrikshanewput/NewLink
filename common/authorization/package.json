@@ -1,6 +1,6 @@
 {
-	"name": "@newlink/authorization",
-	"version": "1.0.0",
+	"name": "@newput-newlink/authorization",
+	"version": "1.0.1",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [

@@ -1,6 +1,7 @@
 {
-	"name": "newlink-monorepo",
-	"private": true,
+	"name": "@newput-newlink/monorepo",
+	"version": "1.0.0",
+	"private": false,
 	"workspaces": [
 		"cli",
 		"common/*",
@@ -15,5 +16,8 @@
 	},
 	"devDependencies": {
 		"lerna": "^8.1.9"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
