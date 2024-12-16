@@ -10,7 +10,7 @@ export class CacheService {
    * @param key - The cache key
    * @returns The cached value or null if not found
    */
-  async get<T>(key: string): Promise<T | null> {
+  async get<T>(key: string): Promise<T | undefined> {
     return this.cache.get<T>(key);
   }
 
@@ -30,6 +30,8 @@ export class CacheService {
    * @param key - The cache key to remove
    */
   async del(key: string): Promise<void> {
-    await this.cache.del(key);
+    if (this.cache && this.cache.del) {
+      await this.cache.del(key);
+    }
   }
 }
