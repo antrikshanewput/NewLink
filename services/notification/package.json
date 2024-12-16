@@ -11,8 +11,8 @@
 	},
 	"dependencies": {
 		"@newlink/authorization": "^1.0.0",
-		"plivo": "^4.69.2",
-		"nodemailer": "^6.9.16"
+		"nodemailer": "^6.9.16",
+		"plivo": "^4.69.2"
 	},
 	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",
