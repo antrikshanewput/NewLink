@@ -1,6 +1,6 @@
 {
-	"name": "@newlink/authentication",
-	"version": "1.0.0",
+	"name": "@newput-newlink/authentication",
+	"version": "1.0.1",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -10,9 +10,9 @@
 		"build": "nest build"
 	},
 	"dependencies": {
-		"@newlink/authorization": "^1.0.0",
-		"@newlink/cache": "^1.0.0",
-		"@newlink/rate-limiter": "^1.0.0",
+		"@newput-newlink/authorization": "^1.0.0",
+		"@newput-newlink/cache": "^1.0.0",
+		"@newput-newlink/rate-limiter": "^1.0.0",
 		"argon2": "^0.41.1",
 		"bcrypt": "^5.1.1",
 		"helmet": "^8.0.0",

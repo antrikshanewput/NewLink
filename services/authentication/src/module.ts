@@ -17,7 +17,7 @@ import { UserTenant } from './entities/user-tenant.entity';
 import { AuthorizationService } from './services/authorization.service';
 import { AuthorizationSeederService } from './services/seeder.service';
 import { EntityRegistry } from './entities';
-import { AuthorizationModule } from '@newlink/authorization';
+import { AuthorizationModule } from '@newput-newlink/authorization';
 
 @Module({})
 export class AuthenticationModule {

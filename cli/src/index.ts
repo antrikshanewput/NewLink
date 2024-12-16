@@ -4,6 +4,7 @@ import shell from 'shelljs';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import path from 'path';
+import { env } from 'process';
 
 interface ModuleConfig {
     name: string;
@@ -16,8 +17,8 @@ interface ModuleConfig {
 const availableModules: ModuleConfig[] = [
     {
         name: 'authentication',
-        packageName: '@newlink/authentication',
-        importStatement: `import { AuthenticationModule } from '@newlink/authentication';`,
+        packageName: '@newput-newlink/authentication',
+        importStatement: `import { AuthenticationModule } from '@newput-newlink/authentication';`,
         moduleRegistration: `AuthenticationModule.register(
           {
             authenticationField: 'phone',
@@ -57,8 +58,8 @@ const availableModules: ModuleConfig[] = [
     },
     {
         name: 'authorization',
-        packageName: '@newlink/authorization',
-        importStatement: `import { AuthorizationModule } from '@newlink/authorization';`,
+        packageName: '@newput-newlink/authorization',
+        importStatement: `import { AuthorizationModule } from '@newput-newlink/authorization';`,
         moduleRegistration: `AuthorizationModule.register()`,
         envVars: {
             JWT_SECRET: 'your_jwt_secret',
@@ -67,8 +68,8 @@ const availableModules: ModuleConfig[] = [
     },
     {
         name: 'blockchain',
-        packageName: '@newlink/blockchain',
-        importStatement: `import { BlockchainModule } from '@newlink/blockchain';`,
+        packageName: '@newput-newlink/blockchain',
+        importStatement: `import { BlockchainModule } from '@newput-newlink/blockchain';`,
         moduleRegistration: `BlockchainModule.register({})`,
         envVars: {
             BLOCKCHAIN: 'hedera',
@@ -79,8 +80,8 @@ const availableModules: ModuleConfig[] = [
     },
     {
         name: 'notification',
-        packageName: '@newlink/notification',
-        importStatement: `import { NotificationModule } from '@newlink/notification';`,
+        packageName: '@newput-newlink/notification',
+        importStatement: `import { NotificationModule } from '@newput-newlink/notification';`,
         moduleRegistration: `NotificationModule.register({})`,
         envVars: {
             EMAIL_HOST: 'smtp.mailtrap.io',
@@ -112,25 +113,14 @@ async function projectNameInput(prompt: string): Promise<{ projectName: string }
     ]);
 }
 
-async function createNestJSProject(projectName: string) {
-    console.log(chalk.blue(`\nCreating NestJS project: ${projectName}...`));
-    const createResult = shell.exec(`npx @nestjs/cli new ${projectName} --package-manager npm`, { silent: true });
-    if (createResult.code !== 0) {
-        throw new Error('Failed to create NestJS project.');
-    }
-    console.log(chalk.green('NestJS project created successfully.'));
-}
-
 async function installModule(module: ModuleConfig): Promise<boolean> {
     console.log(chalk.blue(`\nInstalling ${module.packageName}...`));
     try {
-        const linkResult = shell.exec(`npm link ${module.packageName}`, { silent: true });
-        if (linkResult.code !== 0) {
-            console.warn(chalk.yellow(`npm link failed for ${module.packageName}. Trying alternative installation.`));
-            const installResult = shell.exec(`npm install ${module.packageName}`, { silent: true });
-            if (installResult.code !== 0) {
-                throw new Error(`Failed to install ${module.packageName}`);
-            }
+        // const result = shell.exec(`npm link ${module.packageName}`, { silent: true });
+
+        const result = shell.exec(`npm install ${module.packageName}`, { silent: true });
+        if (result.code !== 0) {
+            throw new Error(`Failed to install ${module.packageName}`);
         }
         return true;
     } catch (error) {
@@ -224,7 +214,12 @@ async function Monolithic() {
         const projectPath = path.resolve(process.cwd(), projectName);
 
         // Step 2: Create NestJS Project with Error Handling
-        await createNestJSProject(projectName);
+        console.log(chalk.blue(`\nCreating NestJS project: ${projectName}...`));
+        const createResult = shell.exec(`npx @nestjs/cli new ${projectName} --package-manager npm`, { silent: true });
+        if (createResult.code !== 0) {
+            throw new Error('Failed to create NestJS project.');
+        }
+        console.log(chalk.green('NestJS project created successfully.'));
 
         // Prompt and install modules dynamically
         const selectedModules: ModuleConfig[] = await getSelectedModules('Monolithic');
@@ -246,7 +241,7 @@ async function Monolithic() {
             }), {})
         };
         generateEnvFile(projectPath, envVars);
-        console.log(chalk.green(`\nNewlink project ${projectName} created successfully!`));
+        console.log(chalk.green(`\nNewput-newlink project ${projectName} created successfully!`));
     } catch (error) {
         console.error(chalk.red('Critical Error:'), error);
         process.exit(0);
@@ -295,28 +290,30 @@ async function Microservices() {
 
             shell.cd(path.join(rootPath, 'packages'));
 
-            const createResult = shell.exec(`npx @nestjs/cli new ${serviceName} --package-manager npm --directory packages/${serviceName}`, { silent: true });
+            console.log(chalk.blue(`\nCreating NestJS Service: ${module.name}...`));
+            const createResult = shell.exec(`npx @nestjs/cli new ${serviceName} --package-manager npm --directory ${serviceName}`, { silent: true });
             if (createResult.code !== 0) {
                 throw new Error(`Failed to create NestJS microservice project for ${module.name}.`);
             }
             console.log(chalk.green(`Microservice for ${module.name} created successfully.`));
 
-
-
-            // Step 5A: Install the respective @newlink package
+            // Step 5A: Install the respective @newput-newlink package
             shell.cd(servicePath);
-            // only for development purpose
-            shell.exec(`npm link ${module.packageName}`, { silent: true });
+            // only for development purposes
             await installModule(module);
+            if (module.name === 'authentication') {
+                shell.exec('npm install pg --save', { silent: true });
+            }
 
             // Step 5B: Modify app.module.ts to import the microservice’s module
             await modifyAppModule(servicePath, [module]);
 
             // Implement Swagger Module
             await swaggerImplementation(servicePath, serviceName);
-
+            let envVars = module.envVars || {};
+            envVars['DB_HOST'] = 'database';
             // Step 5C: Create a dedicated .env for each microservice
-            generateEnvFile(servicePath, module.envVars || {});
+            generateEnvFile(servicePath, envVars || {});
 
             // Step 5D: Add a Dockerfile for each microservice
             console.log(chalk.blue(`Creating Dockerfile for ${serviceName} ...`));
@@ -346,20 +343,36 @@ async function Microservices() {
 
         // Step 6: (Optional) Create a root-level Docker Compose file if you want to orchestrate everything
         const composePath = path.join(rootPath, 'docker-compose.yml');
-        let composeContent = `services:
-        `;
+        let composeContent = `services:`;
         for (const module of selectedModules) {
             const serviceName = `${module.name}-service`;
             composeContent += `
-            ${serviceName}:
-                build: ./packages/${serviceName}
-                container_name: ${serviceName}
-                ports:
-                - "3${Math.floor(Math.random() * 90 + 10)}:3000"
-                env_file:
-                - ./packages/${serviceName}/.env
-            `;
+    ${serviceName}:
+        build: ./packages/${serviceName}
+        container_name: ${serviceName}
+        ports:
+        - "3${Math.floor(Math.random() * 90 + 10)}:3000"
+        env_file:
+        - ./packages/${serviceName}/.env
+        depends_on:
+        - database
+`;
         }
+        composeContent += `
+    database:
+        image: postgres
+        container_name: postgres
+        ports:
+        - "5432:5432"
+        environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+        - POSTGRES_DB=postgres
+        volumes:
+        - postgres-data:/var/lib/postgresql/data    
+volumes:
+  postgres-data:
+    `;
         await fs.writeFile(composePath, composeContent, 'utf-8');
 
         // Step 7: Automatically install and link all workspace packages. (if needed)
@@ -380,7 +393,7 @@ async function Microservices() {
 }
 
 async function main() {
-    console.log(chalk.blue('Welcome to the NewLink CLI!'));
+    console.log(chalk.blue('Welcome to the Newput-newlink CLI!'));
     const { projectType } = await inquirer.prompt([
         {
             type: 'list',
