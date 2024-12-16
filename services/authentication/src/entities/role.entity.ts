@@ -21,7 +21,6 @@ export class Role {
   @Column({ type: 'text', nullable: true })
   description!: string;
 
-
   @ManyToMany(() => EntityRegistry.getEntity('Feature'), (feature: any) => feature.roles, { cascade: true })
   @JoinTable({
     name: 'role_features',
@@ -29,6 +28,7 @@ export class Role {
     inverseJoinColumn: { name: 'feature_id', referencedColumnName: 'id' },
   })
   features!: any[];
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
