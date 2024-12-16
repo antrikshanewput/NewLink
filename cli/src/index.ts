@@ -296,15 +296,18 @@ async function Microservices() {
 
             shell.cd(path.join(rootPath, 'packages'));
 
-
             const createResult = shell.exec(`npx @nestjs/cli new ${serviceName} --package-manager npm --directory /packages/${serviceName}`, { silent: true });
             if (createResult.code !== 0) {
                 throw new Error(`Failed to create NestJS microservice project for ${module.name}.`);
             }
             console.log(chalk.green(`Microservice for ${module.name} created successfully.`));
 
+
+
             // Step 5A: Install the respective @newlink package
             shell.cd(servicePath);
+            // only for development purpose
+            shell.exec(`npm link ${module.packageName}`, { silent: true });
             await installModule(module);
 
             // Step 5B: Modify app.module.ts to import the microservice’s module
