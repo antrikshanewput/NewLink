@@ -22,11 +22,13 @@ The Authentication module is a secure and scalable solution for handling user au
    Integrates seamlessly with other Newlink modules, such as Authorization and Notification.
 
 ---
+
 ## API Endpoints
 
 1. `POST /authentication/login` - Authenticate a user and generate a JWT token.
 2. `POST /authentication/register` - Register a new user.
 ---
+
 
 ## Installation
 

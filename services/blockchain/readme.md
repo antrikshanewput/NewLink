@@ -30,6 +30,7 @@ The Blockchain module provides an easy-to-use and flexible integration for block
 5. `GET /hedera/transactions/{transactionId}` - Get details of a specific transaction.
 
 ---
+
 ## Installation
 
 Install the module via npm:
