@@ -4,6 +4,10 @@ import { HederaService } from "./Hedera/services/hedera.service";
 import { HederaController } from "./Hedera/controllers/hedera.controller";
 import { BlockchainOptionsType } from "./blockchain.type";
 
+/*
+    TODO:
+    - fix naming of api
+ */
 @Module({})
 export class BlockchainModule {
 

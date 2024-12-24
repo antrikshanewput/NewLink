@@ -19,8 +19,8 @@ import { BlockchainOptionsType } from '../../blockchain.type';
 @Injectable()
 export class HederaService {
     private readonly logger = new Logger(HederaService.name);
-    private client: Client;
-    private mirrorNodeUrl: string;
+    private readonly client: Client;
+    private readonly mirrorNodeUrl: string;
 
 
     constructor(@Inject('BLOCKCHAIN_CONFIG') private readonly options: BlockchainOptionsType) {

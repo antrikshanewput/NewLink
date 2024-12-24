@@ -18,7 +18,7 @@ export class HederaController {
 
     constructor(private readonly hederaService: HederaService) { }
 
-    @Post('create-account')
+    @Post('accounts')
     @ApiOperation({
         summary: 'Create a new Hedera account',
         description: 'Creates a new Hedera account with a randomly generated private key.',
@@ -49,7 +49,7 @@ export class HederaController {
         }
     }
 
-    @Get('balance/:accountId')
+    @Get('accounts/:accountId/balance')
     @ApiOperation({
         summary: 'Get account balance',
         description: 'Fetches the HBAR balance of the specified Hedera account.',
@@ -86,7 +86,7 @@ export class HederaController {
         }
     }
 
-    @Post('transfer')
+    @Post('transfers')
     @ApiOperation({
         summary: 'Transfer HBAR',
         description: 'Transfers HBAR tokens from one Hedera account to another.',
@@ -124,10 +124,10 @@ export class HederaController {
             throw new BadRequestException('Invalid request: from, to, amount, and privateKey are required.');
         }
 
-        if (!this.hederaService.isValidAccountId(from)) {
+        if (!(await this.hederaService.isValidAccountId(from))) {
             throw new BadRequestException(`Invalid 'from' account ID: ${from}`);
         }
-        if (!this.hederaService.isValidAccountId(to)) {
+        if (!(await this.hederaService.isValidAccountId(to))) {
             throw new BadRequestException(`Invalid 'to' account ID: ${to}`);
         }
 
@@ -135,11 +135,11 @@ export class HederaController {
             throw new BadRequestException('Transfer amount must be greater than zero.');
         }
 
-        if (!this.hederaService.isValidPrivateKey(privateKey)) {
+        if (!(await this.hederaService.isValidPrivateKey(privateKey))) {
             throw new BadRequestException('Invalid private key provided.');
         }
 
-        if (!this.hederaService.doesPrivateKeyMatchAccount(from, privateKey)) {
+        if (!(await this.hederaService.doesPrivateKeyMatchAccount(from, privateKey))) {
             throw new BadRequestException('The private key does not represent the "from" account.');
         }
 
@@ -155,7 +155,7 @@ export class HederaController {
     }
 
 
-    @Get('transaction/:accountId')
+    @Get('accounts/:accountId/transactions')
     @ApiOperation({
         summary: 'List all transactions for an account',
         description: 'Fetches and returns all transactions for the specified Hedera account.',
@@ -205,7 +205,7 @@ export class HederaController {
     }
 
 
-    @Get('transaction/details/:transactionId')
+    @Get('transactions/:transactionId/details')
     @ApiOperation({
         summary: 'Get transaction details by transaction ID',
         description: 'Fetches the details of a specific transaction for the provided transaction ID using Hedera SDK.',
