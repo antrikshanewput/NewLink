@@ -24,6 +24,17 @@ The Blockchain module provides an easy-to-use and flexible integration for block
 
 Install the module via npm:
 
+---
+## API Endpoints
+### Hedera Endpoints
+1. `POST /hedera/accounts` - Create a new account.
+2. `GET /hedera/accounts/{accountId}` - Fetch details of a specific account, including its balance (if needed).
+3. `POST /hedera/transfers` - Execute a fund transfer operation.
+4. `GET /hedera/accounts/{accountId}/transactions` - List transactions for a specific account.
+5. `GET /hedera/transactions/{transactionId}` - Get details of a specific transaction.
+
+---
+
 ```bash
 npm install @newput-newlink/blockchain
 ```
