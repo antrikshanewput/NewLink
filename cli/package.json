@@ -7,7 +7,7 @@
 		"newput-newlink": "dist/index.js"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc && npm link",
 		"start": "node dist/index.js"
 	},
 	"dependencies": {

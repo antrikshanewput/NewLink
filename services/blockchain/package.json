@@ -1,17 +1,18 @@
 {
 	"name": "@newput-newlink/blockchain",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
 		"dist"
 	],
 	"scripts": {
+		"build:dev": "nest build && npm link",
 		"build": "nest build"
 	},
 	"dependencies": {
 		"@hashgraph/sdk": "^2.26.0",
-		"@newput-newlink/authorization": "^1.0.0"
+		"@newput-newlink/authorization": "^1.0.1"
 	},
 	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",

@@ -17,7 +17,10 @@ import { UserTenant } from './entities/user-tenant.entity';
 import { AuthorizationService } from './services/authorization.service';
 import { AuthorizationSeederService } from './services/seeder.service';
 import { EntityRegistry } from './entities';
-import { AuthorizationModule } from '@newput-newlink/authorization';
+// @ts-ignore
+import { AuthorizationModule } from "@newput-newlink/authorization";
+import { UserController } from 'controllers/user.controller';
+import { UserService } from 'services/user.service';
 
 @Module({})
 export class AuthenticationModule {
@@ -109,6 +112,7 @@ export class AuthenticationModule {
         AuthenticationService,
         AuthorizationService,
         AuthorizationSeederService,
+        UserService,
         JwtStrategy,
         ...config.entities!.map((entity) => ({
           provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_REPOSITORY`,
@@ -116,10 +120,11 @@ export class AuthenticationModule {
           inject: [DataSource],
         })),
       ],
-      controllers: [AuthController],
+      controllers: [AuthController, UserController],
       exports: [
         AuthenticationService,
         AuthorizationService,
+        UserService,
         AuthorizationModule,
         TypeOrmModule
       ],

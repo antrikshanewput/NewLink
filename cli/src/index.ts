@@ -305,6 +305,7 @@ async function Microservices() {
 
             shell.cd(servicePath);
             // Install module
+            // runShellCommand(`npm link ${module.packageName}`);
             runShellCommand(`npm install ${module.packageName}`);
             if (module.name === 'authentication') {
                 runShellCommand('npm install pg --save');

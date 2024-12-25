@@ -5,16 +5,18 @@
 	"workspaces": [
 		"cli",
 		"common/*",
-		"services/*"
+		"services/*",
+		"sandbox/*"
 	],
 	"scripts": {
 		"build": "lerna run build",
+		"build:dev": "lerna run build:dev",
 		"clean": "lerna exec -- rm -rf dist",
 		"rebuild": "npm run clean && npm run build",
-		"bootstrap": "lerna bootstrap",
 		"publish": "lerna publish"
 	},
 	"devDependencies": {
+		"@nestjs/cli": "^10.4.9",
 		"lerna": "^8.1.9"
 	},
 	"publishConfig": {

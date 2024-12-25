@@ -11,6 +11,9 @@ import {
     TokenSupplyType,
     TokenType,
     TransactionReceipt,
+    AccountInfoQuery,
+    PublicKey,
+    Status,
 
 } from '@hashgraph/sdk';
 import axios from 'axios';
@@ -19,19 +22,21 @@ import { BlockchainOptionsType } from '../../blockchain.type';
 @Injectable()
 export class HederaService {
     private readonly logger = new Logger(HederaService.name);
-    private readonly client: Client;
+    private client: Client;
+    private readonly originalOperator: { accountId: string; privateKey: string };
+
     private readonly mirrorNodeUrl: string;
 
 
     constructor(@Inject('BLOCKCHAIN_CONFIG') private readonly options: BlockchainOptionsType) {
         switch (options.network) {
             case 'mainnet':
-                this.client = Client.forMainnet().setOperator(options.account_id!, options.private_key!);
+                this.client = Client.forMainnet();
                 this.mirrorNodeUrl = 'https://mainnet-public.mirrornode.hedera.com';
 
                 break;
             case 'testnet':
-                this.client = Client.forTestnet().setOperator(options.account_id!, options.private_key!);
+                this.client = Client.forTestnet();
                 this.mirrorNodeUrl = 'https://testnet.mirrornode.hedera.com';
 
                 break;
@@ -43,8 +48,14 @@ export class HederaService {
             default:
                 throw new Error('Invalid network');
         }
+        this.originalOperator = { accountId: options.account_id!, privateKey: options.private_key! };
+        this.client.setOperator(this.originalOperator.accountId, this.originalOperator.privateKey);
         this.logger.log('Hedera client initialized successfully!');
     }
+    private revertOperator() {
+        this.client.setOperator(this.originalOperator.accountId, this.originalOperator.privateKey);
+    }
+
 
     async createAccount(): Promise<{ accountId: string; privateKey: string }> {
         try {
@@ -84,23 +95,39 @@ export class HederaService {
         }
     }
 
-    async transferHbar(from: string, to: string, amount: number): Promise<string> {
+    async transferHbar(from: string, to: string, amount: number, privateKey: string): Promise<string> {
         if (amount <= 0) {
             throw new Error('Transfer amount must be greater than zero.');
         }
 
+
         try {
-            const transaction = await new TransferTransaction()
+            this.client.setOperator(from, privateKey);
+
+            const transferTx = await new TransferTransaction()
                 .addHbarTransfer(from, Hbar.fromTinybars(-amount))
                 .addHbarTransfer(to, Hbar.fromTinybars(amount))
-                .execute(this.client);
+                .freezeWith(this.client)
+                .signWithOperator(this.client);
 
-            const receipt = await transaction.getReceipt(this.client);
+            const response = await transferTx.execute(this.client);
+
+            const receipt = await response.getReceipt(this.client);
+            if (receipt.status === Status.Success) {
+                this.logger.log(`Successfully transferred ${amount} tinybars from ${from} to ${to}`);
+            } else {
+                this.logger.warn(`Transfer completed but with unexpected status: ${receipt.status}`);
+            }
+
             this.logger.log(`Transferred ${amount} tinybars from ${from} to ${to}`);
-            return receipt.status.toString();
+            return response.transactionId.toString();
+
         } catch (error) {
             this.logger.error(`Error transferring Hbar from ${from} to ${to}:`, error);
             throw new Error('Failed to transfer Hbar.');
+        }
+        finally {
+            this.revertOperator();
         }
     }
 
@@ -124,20 +151,18 @@ export class HederaService {
 
     async doesPrivateKeyMatchAccount(accountId: string, privateKey: string): Promise<boolean> {
         try {
-            let privateKeyObj: PrivateKey;
-
+            let publicKey: PublicKey;
             if (privateKey.startsWith('302e020100')) {
-                privateKeyObj = PrivateKey.fromStringDer(privateKey);
+                publicKey = PrivateKey.fromStringDer(privateKey).publicKey;
             } else if (privateKey.length === 64 || privateKey.length === 66) {
-                privateKeyObj = PrivateKey.fromStringED25519(privateKey);
+                publicKey = PrivateKey.fromStringED25519(privateKey).publicKey;
             } else {
                 throw new Error('Unsupported private key format.');
             }
 
-            const publicKey = privateKeyObj.publicKey;
+            const accountInfo = await new AccountInfoQuery().setAccountId(AccountId.fromString(accountId)).execute(this.client);
+            return accountInfo.key.toString() === publicKey.toString();
 
-            const derivedAccountId = AccountId.fromString(accountId);
-            return derivedAccountId.toString().endsWith(publicKey.toString());
         } catch (error) {
             this.logger.error(`Error validating private key for account ${accountId}:`, error);
             return false;

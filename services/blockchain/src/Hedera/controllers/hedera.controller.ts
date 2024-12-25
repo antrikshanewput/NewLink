@@ -123,29 +123,22 @@ export class HederaController {
         if (!from || !to || !amount || !privateKey) {
             throw new BadRequestException('Invalid request: from, to, amount, and privateKey are required.');
         }
-
         if (!(await this.hederaService.isValidAccountId(from))) {
             throw new BadRequestException(`Invalid 'from' account ID: ${from}`);
         }
         if (!(await this.hederaService.isValidAccountId(to))) {
             throw new BadRequestException(`Invalid 'to' account ID: ${to}`);
         }
-
         if (amount <= 0) {
             throw new BadRequestException('Transfer amount must be greater than zero.');
         }
-
         if (!(await this.hederaService.isValidPrivateKey(privateKey))) {
             throw new BadRequestException('Invalid private key provided.');
         }
 
-        if (!(await this.hederaService.doesPrivateKeyMatchAccount(from, privateKey))) {
-            throw new BadRequestException('The private key does not represent the "from" account.');
-        }
-
         try {
             this.logger.log(`Transferring ${amount} tinybars from ${from} to ${to}...`);
-            const status = await this.hederaService.transferHbar(from, to, amount);
+            const status = await this.hederaService.transferHbar(from, to, amount, privateKey);
             this.logger.log(`Transfer completed with status: ${status}`);
             return { status };
         } catch (error) {

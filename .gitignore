@@ -46,8 +46,6 @@ coverage/
 *.lcov
 
 # Nest CLI files
-.nest-cli.json
-nest-cli.json
 
 # Temporary files and directories
 tmp/

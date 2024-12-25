@@ -7,6 +7,7 @@
 		"dist"
 	],
 	"scripts": {
+		"build:dev": "nest build && npm link",
 		"build": "nest build"
 	},
 	"dependencies": {

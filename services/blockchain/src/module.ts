@@ -12,7 +12,7 @@ export class BlockchainModule {
         options.network = options.network || configService.get<string>('BLOCKCHAIN_NETWORK', 'testnet') as BlockchainOptionsType['network'];
         options.account_id = options.account_id || configService.get<string>('BLOCKCHAIN_ACCOUNT_ID');
         options.private_key = options.private_key || configService.get<string>('BLOCKCHAIN_PRIVATE_KEY');
-        options.initial_balance = options.initial_balance || Number(configService.get<number>('BLOCKCHAIN_INITIAL_BALANCE', 1000));
+        options.initial_balance = options.initial_balance || Number(configService.get<number>('BLOCKCHAIN_INITIAL_BALANCE', 10000000));
         if (!options.account_id || !options.private_key) {
             throw new Error('Blockchain account_id and private_key are required.');
         }

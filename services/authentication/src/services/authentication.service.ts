@@ -58,7 +58,7 @@ export class AuthenticationService {
 
     const payload = {
       [this.options.authenticationField!]: user[this.options.authenticationField!],
-      sub: user.id,
+      id: user.id,
       roles,
       permissions,
     };
