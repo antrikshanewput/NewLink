@@ -2,6 +2,8 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { AuthenticationOptionsType } from '../authentication.type';
+import { LoginDto } from 'dto/login.dto';
+import { RegisterDto } from 'dto/register.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -15,19 +17,37 @@ export class AuthenticationService {
 
   async findUserByAuthField(value: string): Promise<any | null> {
     const field = this.options.authenticationField!;
+
+    if (value === undefined) {
+      return null;
+    }
+
     const user = await this.userRepository.findOne({ where: { [field]: value } });
     return user || null;
   }
 
-  async validateUser(authFieldValue: string, password: string): Promise<any | null> {
-    const user = await this.findUserByAuthField(authFieldValue);
+  async findUserByUsername(username: string): Promise<any | null> {
+    const user = await this.userRepository.findOne({ where: { username } });
+    return user || null;
+  }
+
+  async validateUser(data: LoginDto): Promise<any | null> {
+
+    const { password } = data;
+    const field = this.options.authenticationField;
+    const value = data[field];
+
+    const user = await this.findUserByAuthField(value);
+
     if (user && (await this.options.hashValidation!(password, user.password))) {
-      return user;
+      const { password, ...result } = user;
+      return result;
     }
     return null;
   }
 
   async login(user: any): Promise<{ access_token: string; user: string }> {
+
     const userTenants = await this.userTenantRepository.find({
       where: { user: { id: user.id } },
       relations: ['tenant', 'role', 'features'],
@@ -73,7 +93,7 @@ export class AuthenticationService {
     };
   }
 
-  async register(userDetails: any): Promise<any> {
+  async register(userDetails: RegisterDto): Promise<any> {
     const encryptedPassword = await this.options.hashingStrategy!(userDetails.password);
     let newUser = this.userRepository.create({ ...userDetails, password: encryptedPassword });
     newUser = await this.userRepository.save(newUser);

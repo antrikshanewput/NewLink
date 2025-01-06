@@ -1,26 +1,22 @@
 import { Controller, Get, Post, Body, BadRequestException, Inject } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { AuthenticationService } from '../services/authentication.service';
-import { AuthenticationOptionsType } from '../authentication.type';
+import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { LoginDto } from 'dto/login.dto';
+import { RegisterDto } from 'dto/register.dto';
+
 
 @Controller('authentication')
 export class AuthController {
-  constructor(private readonly authenticationService: AuthenticationService, @Inject('AUTHENTICATION_OPTIONS') private readonly options: AuthenticationOptionsType,) { }
+  constructor(private readonly authenticationService: AuthenticationService) { }
 
   @Post('login')
-  async login(@Body() body: Record<string, any>) {
-    const authField = this.authenticationService.getAuthenticationField();
-    const authValue = body[authField];
-    const { password } = body;
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({ status: HttpStatus.OK, description: 'User successfully logged in' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
+  async login(@Body() body: LoginDto) {
+    const user = await this.authenticationService.validateUser(body as LoginDto);
 
-    const missingFields: string[] = [];
-    if (!authValue) missingFields.push(authField);
-    if (!password) missingFields.push('password');
-
-    if (missingFields.length > 0) {
-      throw new BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
-    }
-
-    const user = await this.authenticationService.validateUser(authValue, password);
     if (!user) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -29,18 +25,18 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() body: Record<string, any>) {
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully logged in' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid credentials' })
+  async register(@Body() body: RegisterDto) {
+    const authField = this.authenticationService.getAuthenticationField();
+    body['username'] = body.email.split('@')[0];
+    const existingUser = await this.authenticationService.findUserByAuthField(body[authField]) || await this.authenticationService.findUserByUsername(body['username']);
 
-    const missingFields = this.authenticationService.getRegistrationFields().filter(field => !body[field]);
-
-    if (missingFields.length > 0) {
-      throw new BadRequestException(`Missing fields: ${missingFields.join(', ')}`);
-    }
-
-    const existingUser = await this.authenticationService.findUserByAuthField(body[this.options.authenticationField!]);
     if (existingUser) {
-      throw new BadRequestException('User already exists');
+      throw new BadRequestException(`username or ${authField} already exists`);
     }
     return this.authenticationService.register(body);
   }
 }
+

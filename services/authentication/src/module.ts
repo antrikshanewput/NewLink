@@ -49,7 +49,7 @@ export class AuthenticationModule {
     options = {
       ...options,
       authenticationField: options.authenticationField || 'email',
-      registrationFields: options.registrationFields || ['email', 'password', 'name'],
+
       entities: entities,
     };
 
