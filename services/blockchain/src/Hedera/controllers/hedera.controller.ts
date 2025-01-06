@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { HederaService } from '../services/hedera.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery } from '@nestjs/swagger';
+import { HederaTransferDto } from 'dto/hedera/hedera-transfer.dto';
 
 @Controller('hedera')
 @ApiTags('Hedera')
@@ -91,17 +92,6 @@ export class HederaController {
         summary: 'Transfer HBAR',
         description: 'Transfers HBAR tokens from one Hedera account to another.',
     })
-    @ApiBody({
-        description: 'Transfer details',
-        schema: {
-            example: {
-                from: '0.0.12345',
-                to: '0.0.67890',
-                amount: 100,
-                privateKey: '302e020100300506032b657004220420...',
-            },
-        },
-    })
     @ApiResponse({
         status: 200,
         description: 'Successfully transferred HBAR.',
@@ -116,7 +106,7 @@ export class HederaController {
         description: 'Validation error or transfer failure.',
     })
     async transferHbar(
-        @Body() transferRequest: { from: string; to: string; amount: number; privateKey: string },
+        @Body() transferRequest: HederaTransferDto,
     ): Promise<{ status: string }> {
         const { from, to, amount, privateKey } = transferRequest;
 

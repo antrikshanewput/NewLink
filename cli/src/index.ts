@@ -216,10 +216,19 @@ async function implementSwagger(projectPath: string, projectName: string) {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);`;
 
+    const cors = `
+    app.enableCors({
+      origin: '*',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed HTTP methods
+      credentials: true, // If cookies or authentication are required
+    });
+    `;
+
+
     if (!mainContent.includes(swaggerSnippet)) {
         mainContent = mainContent.replace(
             `const app = await NestFactory.create(AppModule);`,
-            `const app = await NestFactory.create(AppModule);\n${swaggerSnippet}`
+            `const app = await NestFactory.create(AppModule);\n${swaggerSnippet}\n${cors}`
         );
     }
 

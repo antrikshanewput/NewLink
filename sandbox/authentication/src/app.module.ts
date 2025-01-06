@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
-import { AuthenticationModule } from '@newlink/authentication';
+import { AuthenticationModule } from '@newput-newlink/authentication';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     AuthenticationModule.register(
       {
         authenticationField: 'phone',
-        registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
         roles: ['Admin', 'Editor', 'Viewer'],
         features: ['Create Post', 'Edit Post', 'View Post'],
         permissions: [
