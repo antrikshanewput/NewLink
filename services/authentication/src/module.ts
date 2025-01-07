@@ -24,7 +24,7 @@ import { UserService } from 'services/user.service';
 
 @Module({})
 export class AuthenticationModule {
-  static async resolveConfig(options: AuthenticationOptionsType): Promise<AuthenticationOptionsType> {
+  static async resolveConfig(options: AuthenticationOptionsType, configService: ConfigService): Promise<AuthenticationOptionsType> {
     const entities = []
     for (const entity of [BaseUser, Feature, Role, Group, Tenant, UserTenant]) {
       let found = false;
@@ -49,7 +49,8 @@ export class AuthenticationModule {
     options = {
       ...options,
       authenticationField: options.authenticationField || 'email',
-
+      private_key: configService.get<string>('JWT_PRIVATE_KEY', ''),
+      public_key: configService.get<string>('JWT_PUBLIC_KEY', ''),
       entities: entities,
     };
 
@@ -89,7 +90,8 @@ export class AuthenticationModule {
   }
 
   static async register(configuration: AuthenticationOptionsType, db: DatabaseOptionsType = {}): Promise<DynamicModule> {
-    const config = await this.resolveConfig(configuration);
+    const configService = new ConfigService();
+    const config = await this.resolveConfig(configuration, configService);
     return {
       module: AuthenticationModule,
       imports: [

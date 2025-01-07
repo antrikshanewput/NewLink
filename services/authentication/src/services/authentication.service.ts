@@ -88,7 +88,7 @@ export class AuthenticationService {
 
     // Return the access token and user
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.options.private_key !== '' ? this.jwtService.sign(payload, { privateKey: this.options.private_key, algorithm: 'RS256' }) : this.jwtService.sign(payload),
       user: user[this.options.authenticationField!],
     };
   }
