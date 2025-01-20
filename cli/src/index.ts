@@ -13,6 +13,8 @@ interface ModuleConfig {
     envVars?: Record<string, string>;
 }
 
+// TODO: Add app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true })); to main.ts
+
 const availableModules: ModuleConfig[] = [
     {
         name: 'authentication',

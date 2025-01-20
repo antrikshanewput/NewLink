@@ -6,18 +6,25 @@ import {
     Logger,
     Param,
     Post,
-    Query
+    Inject
 } from '@nestjs/common';
-import { HederaService } from '../services/hedera.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery } from '@nestjs/swagger';
-import { HederaTransferDto } from 'dto/hedera/hedera-transfer.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+
+import { HederaService } from 'hedera/services/hedera.service';
+
 
 @Controller('hedera')
 @ApiTags('Hedera')
 export class HederaController {
+    static HederaTransferDto: any;
     private readonly logger = new Logger(HederaController.name);
 
-    constructor(private readonly hederaService: HederaService) { }
+    constructor(
+        private readonly hederaService: HederaService,
+        @Inject('HEDERA_TRANSFER_DTO') private readonly HederaTransferDto: any,
+    ) {
+        HederaController.HederaTransferDto = HederaTransferDto
+    }
 
     @Post('accounts')
     @ApiOperation({
@@ -88,6 +95,7 @@ export class HederaController {
     }
 
     @Post('transfers')
+    @ApiBody({ type: () => HederaController.HederaTransferDto })
     @ApiOperation({
         summary: 'Transfer HBAR',
         description: 'Transfers HBAR tokens from one Hedera account to another.',
@@ -106,9 +114,9 @@ export class HederaController {
         description: 'Validation error or transfer failure.',
     })
     async transferHbar(
-        @Body() transferRequest: HederaTransferDto,
+        @Body() transferRequest: InstanceType<typeof this.HederaTransferDto>,
     ): Promise<{ status: string }> {
-        const { from, to, amount, privateKey } = transferRequest;
+        const { from, to, amount, privateKey } = transferRequest as typeof this.HederaTransferDto;
 
         if (!from || !to || !amount || !privateKey) {
             throw new BadRequestException('Invalid request: from, to, amount, and privateKey are required.');
@@ -231,7 +239,7 @@ export class HederaController {
         @Param('transactionId') transactionId: string
     ): Promise<any> {
         try {
-            // Log the request
+
             this.logger.log(`Fetching transaction details for ID: ${transactionId}`);
 
             if (!transactionId) {

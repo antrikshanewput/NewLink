@@ -10,7 +10,7 @@ export class AuthorizationModule {
     return {
       module: AuthorizationModule,
       imports: [
-        ConfigModule.forRoot(), // Load environment variables
+        ConfigModule.forRoot(),
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],

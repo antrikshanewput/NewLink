@@ -1,58 +1,56 @@
-import { DynamicModule, Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
+import { APP_PIPE } from '@nestjs/core';
+import { DynamicModule, Global, Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
-import { AuthenticationService } from './services/authentication.service';
-import { AuthController } from './controllers/auth.controller';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { BaseUser } from './entities/user.entity';
-import { DatabaseOptionsType } from './database.types';
-import { AuthenticationOptionsType, validateAuthorizationOptions } from './authentication.type';
-import { Feature } from './entities/feature.entity';
-import { Role } from './entities/role.entity';
-import { Group } from './entities/group.entity';
-import { Tenant } from './entities/tenant.entity';
-import { UserTenant } from './entities/user-tenant.entity';
-import { AuthorizationService } from './services/authorization.service';
-import { AuthorizationSeederService } from './services/seeder.service';
-import { EntityRegistry } from './entities';
-// @ts-ignore
-import { AuthorizationModule } from "@newput-newlink/authorization";
-import { UserController } from 'controllers/user.controller';
+
+import { EntityRegistry } from 'entities';
+import { BaseUser } from 'entities/user.entity';
+
+import { AuthenticationService } from 'services/authentication.service';
 import { UserService } from 'services/user.service';
 
+import { AuthController } from 'controllers/auth.controller';
+import { UserController } from 'controllers/user.controller';
+
+import { JwtStrategy } from 'strategies/jwt.strategy';
+
+import { DatabaseOptionsType } from 'database.types';
+import { AuthenticationOptionsType } from 'authentication.type';
+
+import { DefaultDTO } from 'dto';
+
+@Global()
 @Module({})
 export class AuthenticationModule {
   static async resolveConfig(options: AuthenticationOptionsType, configService: ConfigService): Promise<AuthenticationOptionsType> {
-    const entities = []
-    for (const entity of [BaseUser, Feature, Role, Group, Tenant, UserTenant]) {
-      let found = false;
-      let name = (entity.name === 'BaseUser') ? 'User' : entity.name;
-      for (const options_entity of options.entities || []) {
-        if (name === options_entity.name) {
-          entities.push(options_entity);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        entities.push(entity);
-      }
-    }
+    const entities = [BaseUser].map((entity) => {
+      return (
+        options.entities?.find((optionsEntity) => optionsEntity.name === (entity.name === 'BaseUser' ? 'User' : entity.name)) ||
+        entity
+      );
+    });
 
     entities!.forEach((entity) => {
       const alias = entity.name === 'BaseUser' ? 'User' : entity.name;
       EntityRegistry.registerEntity(alias, entity);
     });
 
-    options = {
-      ...options,
-      authenticationField: options.authenticationField || 'email',
-      private_key: configService.get<string>('JWT_PRIVATE_KEY', ''),
-      public_key: configService.get<string>('JWT_PUBLIC_KEY', ''),
-      entities: entities,
-    };
+
+    options.dto = options.dto
+      ? DefaultDTO.map(defaultDto => {
+        const customDto = options.dto?.find(dto => dto.provide === defaultDto.provide) || defaultDto;
+        return { provide: customDto.provide, useValue: customDto.useValue }
+      })
+      : DefaultDTO;
+
+    options.authenticationField = options.authenticationField || 'email';
+    options.private_key = configService.get<string>('JWT_PRIVATE_KEY', '');
+    options.public_key = configService.get<string>('JWT_PUBLIC_KEY', '');
+    options.token_expiration = configService.get<string>('JWT_EXPIRATION', '1d');
+    options.entities = entities;
 
     if (!options.hashingStrategy && !options.hashValidation) {
       try {
@@ -66,16 +64,10 @@ export class AuthenticationModule {
         );
       }
     }
-
-    validateAuthorizationOptions(options);
     return options;
   }
 
-  static async resolveDatabaseConfig(
-    database: DatabaseOptionsType,
-    configService: ConfigService,
-    config: AuthenticationOptionsType
-  ): Promise<TypeOrmModuleOptions> {
+  static async resolveDatabaseConfig(database: DatabaseOptionsType, configService: ConfigService, config: AuthenticationOptionsType): Promise<TypeOrmModuleOptions> {
     return {
       type: (database.type || configService.get<string>('AUTH_DB_TYPE') || configService.get<string>('DB_TYPE', 'postgres')) as DatabaseOptionsType['type'],
       host: database.host || configService.get<string>('AUTH_DB_HOST') || configService.get<string>('DB_HOST', 'localhost'),
@@ -90,46 +82,67 @@ export class AuthenticationModule {
   }
 
   static async register(configuration: AuthenticationOptionsType, db: DatabaseOptionsType = {}): Promise<DynamicModule> {
-    const configService = new ConfigService();
-    const config = await this.resolveConfig(configuration, configService);
+    const config = await this.resolveConfig(configuration, new ConfigService());
+
+    const imports = [
+      ConfigModule.forRoot({ isGlobal: true }),
+      PassportModule.register({}),
+      JwtModule.registerAsync({
+
+        useFactory: () => ({
+          secret: config.private_key,
+          publicKey: config.public_key,
+          signOptions: { expiresIn: config.token_expiration },
+        }),
+      }),
+      TypeOrmModule.forRootAsync({
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: async (configService: ConfigService) =>
+          await this.resolveDatabaseConfig(db, configService, config),
+      }),
+      TypeOrmModule.forFeature(config.entities!),
+    ];
+
+    const providers = [
+      {
+        provide: 'AUTHENTICATION_OPTIONS',
+        useValue: config,
+      },
+      ...config.entities!.map((entity) => ({
+        provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_REPOSITORY`,
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(entity),
+        inject: [DataSource],
+      })),
+      {
+        provide: APP_PIPE,
+        useFactory: () => {
+          return new ValidationPipe({
+            whitelist: true,
+            transform: true,
+            forbidNonWhitelisted: true,
+            transformOptions: {
+              enableImplicitConversion: true,
+            },
+          });
+        },
+      },
+      ...config.dto,
+      AuthenticationService,
+      UserService,
+      JwtStrategy,
+    ];
+
+    const controllers = [AuthController, UserController];
+
+    const exports = [AuthenticationService, UserService, TypeOrmModule];
+
     return {
       module: AuthenticationModule,
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        PassportModule.register({}),
-        AuthorizationModule.register(),
-        TypeOrmModule.forRootAsync({
-          imports: [ConfigModule],
-          inject: [ConfigService],
-          useFactory: async (configService: ConfigService) =>
-            await this.resolveDatabaseConfig(db, configService, config),
-        }),
-        TypeOrmModule.forFeature(config.entities!),
-      ],
-      providers: [
-        {
-          provide: 'AUTHENTICATION_OPTIONS',
-          useValue: config,
-        },
-        AuthenticationService,
-        AuthorizationService,
-        AuthorizationSeederService,
-        UserService,
-        JwtStrategy,
-        ...config.entities!.map((entity) => ({
-          provide: `${(entity.name === "BaseUser") ? "USER" : entity.name.toUpperCase()}_REPOSITORY`,
-          useFactory: (dataSource: DataSource) => dataSource.getRepository(entity),
-          inject: [DataSource],
-        })),
-      ],
-      controllers: [AuthController, UserController],
-      exports: [
-        AuthenticationService,
-        AuthorizationService,
-        UserService,
-        AuthorizationModule,
-        TypeOrmModule
-      ],
+      imports: imports,
+      providers: providers,
+      controllers: controllers,
+      exports: exports,
     };
   }
 }

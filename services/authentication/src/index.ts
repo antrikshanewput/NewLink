@@ -1,16 +1,19 @@
-// Export the main AuthModule
 export * from './module';
 
-export * from './entities/user.entity';
-export { Role as RoleEntity } from './entities/role.entity';
-export { Feature as FeatuerEntity } from './entities/feature.entity';
+export * from 'entities/user.entity';
 
-export * from './services/authentication.service';
-export * from './services/authorization.service';
+export * from 'dto/login.dto';
+export * from 'dto/register.dto';
 
-export * from './controllers/auth.controller';
+export * from 'services/authentication.service';
+export * from 'services/user.service';
 
-export * from './strategies/jwt.strategy';
+export * from 'controllers/auth.controller';
+export * from 'controllers/user.controller';
+
+export * from 'strategies/jwt.strategy';
+
+export * from 'guards/jwt.guard';
 
 
 

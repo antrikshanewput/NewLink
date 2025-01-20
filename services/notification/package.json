@@ -17,6 +17,7 @@
 	},
 	"peerDependencies": {
 		"@nestjs/common": "^10.0.0",
+		"@nestjs/config": "^3.3.0",
 		"@nestjs/core": "^10.0.0"
 	},
 	"devDependencies": {

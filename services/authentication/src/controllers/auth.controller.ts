@@ -1,21 +1,30 @@
-import { Controller, Get, Post, Body, BadRequestException, Inject } from '@nestjs/common';
-import { HttpStatus } from '@nestjs/common';
-import { AuthenticationService } from '../services/authentication.service';
+import { Controller, Post, Body, HttpStatus, BadRequestException, Inject } from '@nestjs/common';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
-import { LoginDto } from 'dto/login.dto';
-import { RegisterDto } from 'dto/register.dto';
+
+import { AuthenticationService } from 'services/authentication.service';
+
 
 
 @Controller('authentication')
 export class AuthController {
-  constructor(private readonly authenticationService: AuthenticationService) { }
+  static LoginDTO: any;
+  static RegisterDTO: any;
+
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    @Inject('LOGIN_DTO') private readonly LoginDTO: any,
+    @Inject('REGISTER_DTO') private readonly RegisterDTO: any,
+  ) {
+    AuthController.LoginDTO = LoginDTO;
+    AuthController.RegisterDTO = RegisterDTO;
+  }
 
   @Post('login')
-  @ApiBody({ type: LoginDto })
+  @ApiBody({ type: () => AuthController.LoginDTO })
   @ApiResponse({ status: HttpStatus.OK, description: 'User successfully logged in' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
-  async login(@Body() body: LoginDto) {
-    const user = await this.authenticationService.validateUser(body as LoginDto);
+  async login(@Body() body: InstanceType<typeof this.LoginDTO>) {
+    const user = await this.authenticationService.validateUser(body as typeof this.LoginDTO);
 
     if (!user) {
       throw new BadRequestException('Invalid credentials');
@@ -25,10 +34,10 @@ export class AuthController {
   }
 
   @Post('register')
-  @ApiBody({ type: RegisterDto })
+  @ApiBody({ type: () => AuthController.RegisterDTO })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User successfully logged in' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid credentials' })
-  async register(@Body() body: RegisterDto) {
+  async register(@Body() body: InstanceType<typeof this.RegisterDTO>) {
     const authField = this.authenticationService.getAuthenticationField();
     body['username'] = body.email.split('@')[0];
     const existingUser = await this.authenticationService.findUserByAuthField(body[authField]) || await this.authenticationService.findUserByUsername(body['username']);

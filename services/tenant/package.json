@@ -1,0 +1,28 @@
+{
+	"name": "@newput-newlink/tenant",
+	"version": "1.0.0",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build:dev": "nest build && npm link",
+		"build": "nest build"
+	},
+	"dependencies": {},
+	"peerDependencies": {
+		"@nestjs/common": "^10.0.0",
+		"@nestjs/core": "^10.0.0"
+	},
+	"devDependencies": {
+		"@types/nodemailer": "^6.4.17",
+		"ts-loader": "^9.4.3",
+		"ts-node": "^10.9.1",
+		"tsconfig-paths": "^4.2.0",
+		"typescript": "^5.1.3"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

@@ -1,84 +1,94 @@
-import { Module, DynamicModule, Global } from '@nestjs/common';
-import { EmailService } from './email/email.service';
-import { PlivoService } from './sms/plivo.service';
+import { APP_PIPE } from '@nestjs/core';
+import { Module, DynamicModule, ValidationPipe } from '@nestjs/common';
+import { ConfigModule, ConfigService } from "@nestjs/config";
+
 import * as nodemailer from 'nodemailer';
 import * as plivo from 'plivo';
-import { ConfigService } from '@nestjs/config';
-import { NotificationController } from './controllers/notification.controller';
-export interface NotificationModuleOptions {
-    email?: {
-        host?: string;
-        port?: number;
-        user?: string;
-        pass?: string;
-        from?: string;
-    };
-    sms?: {
-        authId?: string;
-        authToken?: string;
-        from?: string;
-    };
-}
 
-@Global()
+import { EmailService } from 'email/email.service';
+import { PlivoService } from 'sms/plivo.service';
+import { NotificationController } from 'controllers/notification.controller';
+import { NotificationModuleOptions } from 'notification.type';
+
+import { DefaultDTO } from 'dto';
+
 @Module({})
 export class NotificationModule {
-    static resolveConfig(
-        options: NotificationModuleOptions,
-        configService: ConfigService,
-    ): NotificationModuleOptions {
-        // Resolve Email Configuration
-        options.email = options.email || {};
-        options.email.host = options.email.host || configService.get<string>('EMAIL_HOST', '');
-        options.email.port = options.email.port || configService.get<number>('EMAIL_PORT', 587);
-        options.email.user = options.email.user || configService.get<string>('EMAIL_USER', '');
-        options.email.pass = options.email.pass || configService.get<string>('EMAIL_PASS', '');
-        options.email.from = options.email.from || configService.get<string>('EMAIL_FROM', '');
+    static resolveConfig(options: NotificationModuleOptions, configService: ConfigService): NotificationModuleOptions {
 
-        // Resolve SMS Configuration
-        options.sms = options.sms || {};
-        options.sms.authId = options.sms.authId || configService.get<string>('PLIVO_AUTH_ID', '');
-        options.sms.authToken = options.sms.authToken || configService.get<string>('PLIVO_AUTH_TOKEN', '');
-        options.sms.from = options.sms.from || configService.get<string>('PLIVO_FROM_NUMBER', '');
+        options.email = {
+            host: configService.get('EMAIL_HOST', ''),
+            port: configService.get('EMAIL_PORT', 587),
+            user: configService.get('EMAIL_USER', ''),
+            pass: configService.get('EMAIL_PASS', ''),
+            from: configService.get('EMAIL_FROM', ''),
+        }
 
-        // Validate Email Config
+        options.sms = {
+            provider: configService.get('SMS_PROVIDER', 'plivo'),
+            authId: configService.get('PLIVO_AUTH_ID', ''),
+            authToken: configService.get('PLIVO_AUTH_TOKEN', ''),
+            from: configService.get('PLIVO_FROM_NUMBER', '')
+        };
+
         if (options.email.host && (!options.email.user || !options.email.pass)) {
-            throw new Error('Email user and pass are required when email host is provided.');
+            throw new Error('Email configuration is invalid. Provide both user and pass.');
         }
 
-        // Validate SMS Config
         if ((options.sms.authId && !options.sms.authToken) || (!options.sms.authId && options.sms.authToken)) {
-            throw new Error('Both SMS authId and authToken are required for SMS configuration.');
+            throw new Error('Both SMS authId and authToken are required.');
         }
+
+
+
+
+        options.dto = options.dto
+            ? DefaultDTO.map(defaultDto => {
+                const customDto = options.dto?.find(dto => dto.provide === defaultDto.provide) || defaultDto;
+                return { provide: customDto.provide, useValue: customDto.useValue }
+            })
+            : DefaultDTO;
 
         return options;
     }
 
-    static register(options: NotificationModuleOptions): DynamicModule {
-        const providers = [];
+    static register(configuration: NotificationModuleOptions): DynamicModule {
+        const options = this.resolveConfig(configuration, new ConfigService());
+        const imports = [ConfigModule.forRoot({ isGlobal: true })];
+        const providers: any[] = [
+            {
+                provide: APP_PIPE,
+                useFactory: () => {
+                    return new ValidationPipe({
+                        whitelist: true,
+                        transform: true,
+                        forbidNonWhitelisted: true,
+                    });
+                },
+            },
+            ...options.dto,
+        ];
         const exports = [];
-        const configService = new ConfigService();
-
-        options = this.resolveConfig(options, configService);
+        const controllers = [NotificationController];
 
         if (options.email) {
             providers.push({
                 provide: 'EMAIL_TRANSPORTER',
                 useFactory: () => {
                     return nodemailer.createTransport({
-                        host: options.email!.host,
-                        port: options.email!.port,
-                        secure: options.email!.port === 465,
+                        host: options.email.host,
+                        port: options.email.port,
+                        secure: options.email.port === 465,
                         auth: {
-                            user: options.email!.user,
-                            pass: options.email!.pass,
+                            user: options.email.user,
+                            pass: options.email.pass,
                         },
                     });
                 },
             });
             providers.push({
                 provide: 'EMAIL_FROM',
-                useValue: options.email!.user,
+                useValue: options.email.from,
             });
             providers.push(EmailService);
             exports.push(EmailService);
@@ -87,22 +97,27 @@ export class NotificationModule {
         if (options.sms) {
             providers.push({
                 provide: 'PLIVO_CLIENT',
-                useFactory: () => new plivo.Client(options.sms!.authId, options.sms!.authToken),
+                useFactory: () => {
+                    if (!options.sms.authId || !options.sms.authToken) {
+                        throw new Error('Plivo credentials are missing.');
+                    }
+                    return new plivo.Client(options.sms.authId, options.sms.authToken);
+                },
             });
             providers.push({
                 provide: 'PLIVO_FROM_NUMBER',
-                useValue: options.sms!.from,
-            })
+                useValue: options.sms.from,
+            });
             providers.push(PlivoService);
-
             exports.push(PlivoService);
         }
 
         return {
             module: NotificationModule,
-            providers: [...providers],
-            exports: [...exports],
-            controllers: [NotificationController],
+            imports: imports,
+            providers: providers,
+            exports: exports,
+            controllers: controllers,
         };
     }
 }

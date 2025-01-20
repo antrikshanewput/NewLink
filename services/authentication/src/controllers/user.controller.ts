@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Patch, Req } from "@nestjs/common";
+
 import { Authenticate } from "decorators/authentication.decorator";
+
 import { UserService } from "services/user.service";
 
 @Controller('user')

@@ -1,4 +1,8 @@
 import { TokenSupplyType, TokenType } from "@hashgraph/sdk";
+interface ProviderDtoType {
+    provide: string;
+    useValue: any;
+}
 
 export interface BlockchainOptionsType {
     blockchain?: string;
@@ -6,6 +10,7 @@ export interface BlockchainOptionsType {
     account_id?: string;
     private_key?: string;
     initial_balance?: number;
+    dto?: ProviderDtoType[];
 }
 
 export interface BlockchainTokenTypes {
