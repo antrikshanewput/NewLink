@@ -1,5 +1,4 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { EntityRegistry } from ".";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('groups')
 export class Group {
@@ -29,7 +28,4 @@ export class Group {
 
     @Column()
     deletedBy!: string;
-
-    @ManyToMany(() => EntityRegistry.getEntity('UserTenant'), (userTenant: any) => userTenant.groups)
-    userTenants!: any[];
 }

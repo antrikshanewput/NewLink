@@ -1,5 +1,3 @@
-import 'reflect-metadata';
-
 export class EntityRegistry {
     private static registry: { [key: string]: any } = {};
 

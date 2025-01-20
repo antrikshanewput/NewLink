@@ -1,7 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { AuthenticationOptionsType } from '../authentication.type';
+
+import { AuthenticationOptionsType } from 'authentication.type';
+
 import { LoginDto } from 'dto/login.dto';
 import { RegisterDto } from 'dto/register.dto';
 
@@ -11,8 +13,6 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
     @Inject('AUTHENTICATION_OPTIONS') private readonly options: AuthenticationOptionsType,
     @Inject('USER_REPOSITORY') private readonly userRepository: Repository<any>,
-    @Inject('USERTENANT_REPOSITORY')
-    private readonly userTenantRepository: Repository<any>,
   ) { }
 
   async findUserByAuthField(value: string): Promise<any | null> {
@@ -48,39 +48,10 @@ export class AuthenticationService {
 
   async login(user: any): Promise<{ access_token: string; user: string }> {
 
-    const userTenants = await this.userTenantRepository.find({
-      where: { user: { id: user.id } },
-      relations: ['tenant', 'role', 'features'],
-    });
-
-    const roles: { [tenantId: string]: string[] } = {};
-    const permissions: { [tenantId: string]: string[] } = {};
-
-    for (const userTenant of userTenants) {
-      const tenantId = userTenant.tenant.id;
-
-      if (!roles[tenantId]) {
-        roles[tenantId] = [];
-      }
-      if (!roles[tenantId].includes(userTenant.role.name)) {
-        roles[tenantId].push(userTenant.role.name);
-      }
-
-      if (!permissions[tenantId]) {
-        permissions[tenantId] = [];
-      }
-      for (const feature of userTenant.features) {
-        if (!permissions[tenantId].includes(feature.name)) {
-          permissions[tenantId].push(feature.name);
-        }
-      }
-    }
 
     const payload = {
       [this.options.authenticationField!]: user[this.options.authenticationField!],
       id: user.id,
-      roles,
-      permissions,
     };
 
     // Update last login

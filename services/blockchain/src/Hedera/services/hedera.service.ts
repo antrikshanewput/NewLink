@@ -16,8 +16,10 @@ import {
     Status,
 
 } from '@hashgraph/sdk';
+
 import axios from 'axios';
-import { BlockchainOptionsType } from '../../blockchain.type';
+
+import { BlockchainOptionsType } from 'blockchain.type';
 
 @Injectable()
 export class HederaService {

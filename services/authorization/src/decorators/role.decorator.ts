@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 export const ROLE_KEY = 'roles';
 
 export function Role(...rolesOrArray: (string | string[])[]) {
-    const roles = rolesOrArray.flat(); // Flatten the array to handle both individual roles and arrays
+    const roles = rolesOrArray.flat();
     return applyDecorators(
         SetMetadata(ROLE_KEY, roles),
         UseGuards(JwtAuthGuard, RoleGuard),

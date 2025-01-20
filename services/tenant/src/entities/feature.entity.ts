@@ -1,14 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToMany,
-} from 'typeorm';
-import { EntityRegistry } from '.';
-
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 
 @Entity('features')
 export class Feature {
@@ -21,9 +11,6 @@ export class Feature {
   @Column({ type: 'text', nullable: true })
   description!: string;
 
-  @ManyToMany(() => EntityRegistry.getEntity('Role'), (role: any) => role.features)
-  roles!: any[];
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
@@ -32,8 +19,4 @@ export class Feature {
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt!: Date;
-
-  @ManyToMany(() => EntityRegistry.getEntity('UserTenant'), (userTenant: any) => userTenant.features)
-  userTenants!: any[];
-
 }

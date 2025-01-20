@@ -1,8 +1,12 @@
-import { DynamicModule, Module } from "@nestjs/common";
+import { APP_PIPE } from '@nestjs/core';
+import { DynamicModule, Module, ValidationPipe } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { HederaService } from "./Hedera/services/hedera.service";
-import { HederaController } from "./Hedera/controllers/hedera.controller";
-import { BlockchainOptionsType } from "./blockchain.type";
+
+import { HederaService } from "hedera/services/hedera.service";
+import { HederaController } from "hedera/controllers/hedera.controller";
+import { BlockchainOptionsType } from "blockchain.type";
+
+import { DefaultDTO } from "dto";
 
 @Module({})
 export class BlockchainModule {
@@ -20,30 +24,46 @@ export class BlockchainModule {
             throw new Error('Invalid blockchain network. Supported networks: mainnet, testnet, previewnet.');
         }
 
+        options.dto = options.dto
+            ? DefaultDTO.map(defaultDto => {
+                const customDto = options.dto?.find(dto => dto.provide === defaultDto.provide) || defaultDto;
+                return { provide: customDto.provide, useValue: customDto.useValue }
+            })
+            : DefaultDTO;
         return options;
     }
 
 
 
-    static register(options: BlockchainOptionsType): DynamicModule {
-        options = this.resolveConfig(options, new ConfigService());
-
-
-        const importsArray = [
-            ConfigModule.forRoot(),
+    static register(configuration: BlockchainOptionsType): DynamicModule {
+        const options = this.resolveConfig(configuration, new ConfigService());
+        const imports = [ConfigModule.forRoot({ isGlobal: true })];
+        const exports: any[] = ['BLOCKCHAIN_CONFIG'];
+        const providers: any[] = [
+            {
+                provide: 'BLOCKCHAIN_CONFIG',
+                useValue: options,
+            },
+            {
+                provide: APP_PIPE,
+                useFactory: () => {
+                    return new ValidationPipe({
+                        whitelist: true,
+                        transform: true,
+                        forbidNonWhitelisted: true,
+                    });
+                },
+            },
+            ...options.dto
         ];
-        const exportsArray: any[] = ['BLOCKCHAIN_CONFIG'];
-        const providersArray: any[] = [{
-            provide: 'BLOCKCHAIN_CONFIG',
-            useValue: options,
-        },
-        ];
-        const controllersArray: any[] = [];
+        const controllers = [];
+
         switch (options.blockchain) {
             case 'hedera':
-                providersArray.push(HederaService);
-                exportsArray.push(HederaService);
-                controllersArray.push(HederaController);
+
+                providers.push(HederaService);
+                exports.push(HederaService);
+                controllers.push(HederaController);
                 break;
             default:
                 throw new Error(`Invalid blockchain provider: ${options.blockchain}. Supported providers: 'hedera'.`);
@@ -51,10 +71,10 @@ export class BlockchainModule {
 
         return {
             module: BlockchainModule,
-            imports: importsArray,
-            providers: providersArray,
-            exports: exportsArray,
-            controllers: controllersArray,
+            imports: imports,
+            providers: providers,
+            controllers: controllers,
+            exports: exports,
         };
     }
 }
