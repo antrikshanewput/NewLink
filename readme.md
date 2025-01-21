@@ -81,8 +81,8 @@ Newlink is a monorepo managed with [Lerna](https://lerna.js.org/), making it mod
 
 Ensure you have the following installed:
 
--   [Node.js](https://nodejs.org/) (v20 or later)
--   npm (v8 or later)
+- [Node.js](https://nodejs.org/) (v20 or later)
+- npm (v8 or later)
 
 ---
 
@@ -94,3 +94,22 @@ Use the Newlink CLI to quickly initialize your project:
 npx @newput-newlink/cli
 cd my-project
 ```
+
+#### Installation Process
+
+During installation, the CLI will guide you through two key configuration steps:
+
+-> Architecture Selection: Choose between Monolithic or Microservice architecture based on your project requirements.
+-> Service Setup: You'll be prompted to enable the various services. Enter 'Y' to include this feature in your installation.
+
+The CLI tool handles all dependency installation and initial setup automatically, creating a production-ready service configured to your specifications.
+What Happens Next?
+After completing these steps, the NewLink CLI will:
+
+Install all required dependencies
+Generate necessary configuration files
+Set up your chosen architecture
+Configure the services
+Initialize your project with the selected settings
+
+Now your NewLink service is ready for development and deployment.

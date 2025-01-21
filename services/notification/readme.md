@@ -19,11 +19,30 @@ The Notification module provides a robust and extensible system for sending noti
 
 ## Installation
 
-Install the module via npm:
+Use the module via newlink-cli:
 
 ```bash
-npm install @newput-newlink/notification
+npx @newput-newlink/cli
 ```
+
+### Installation Process
+
+During installation, the CLI will guide you through two key configuration steps:
+
+-> Architecture Selection: Choose between Monolithic or Microservice architecture based on your project requirements.
+-> Notification Setup: You'll be prompted to enable the notification service. Enter 'Y' to include this feature in your installation.
+
+The CLI tool handles all dependency installation and initial setup automatically, creating a production-ready service configured to your specifications.
+What Happens Next?
+After completing these steps, the NewLink CLI will:
+
+Install all required dependencies
+Generate necessary configuration files
+Set up your chosen architecture
+Configure the notification service (if selected)
+Initialize your project with the selected settings
+
+Now your NewLink service is ready for development and deployment.
 
 ---
 

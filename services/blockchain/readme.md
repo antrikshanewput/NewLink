@@ -22,11 +22,39 @@ The Blockchain module provides an easy-to-use and flexible integration for block
 
 ## Installation
 
-Install the module via npm:
+Use the module via newlink-cli:
+
+```bash
+npx @newput-newlink/cli
+```
+
+### Installation Process
+
+During installation, the CLI will guide you through two key configuration steps:
+
+-> Architecture Selection: Choose between Monolithic or Microservice architecture based on your project requirements.
+-> Blockchain Setup: You'll be prompted to enable the blockchain service. Enter 'Y' to include this feature in your installation.
+
+The CLI tool handles all dependency installation and initial setup automatically, creating a production-ready service configured to your specifications.
+What Happens Next?
+After completing these steps, the NewLink CLI will:
+
+Install all required dependencies
+Generate necessary configuration files
+Set up your chosen architecture
+Configure the blockchain service (if selected)
+Initialize your project with the selected settings
+
+Now your NewLink service is ready for development and deployment.
 
 ---
+
+---
+
 ## API Endpoints
+
 ### Hedera Endpoints
+
 1. `POST /hedera/accounts` - Create a new account.
 2. `GET /hedera/accounts/{accountId}` - Fetch details of a specific account, including its balance (if needed).
 3. `POST /hedera/transfers` - Execute a fund transfer operation.

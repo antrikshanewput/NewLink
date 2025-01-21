@@ -25,12 +25,42 @@ The Authentication module is a secure and scalable solution for handling user au
 
 ## Installation
 
-Install the module via npm:
+## Installation
+
+Use the module via newlink-cli:
+
+```bash
+npx @newput-newlink/cli
+```
+
+### Installation Process
+
+During installation, the CLI will guide you through two key configuration steps:
+
+-> Architecture Selection: Choose between Monolithic or Microservice architecture based on your project requirements.
+-> Authentication Setup: You'll be prompted to enable the authentication service. Enter 'Y' to include this feature in your installation.
+
+The CLI tool handles all dependency installation and initial setup automatically, creating a production-ready service configured to your specifications.
+What Happens Next?
+After completing these steps, the NewLink CLI will:
+
+Install all required dependencies
+Generate necessary configuration files
+Set up your chosen architecture
+Configure the authentication service (if selected)
+Initialize your project with the selected settings
+
+Now your NewLink service is ready for development and deployment.
 
 ---
+
+---
+
 ## API Endpoints
+
 1. `POST /authentication/login` - Authenticate a user and generate a JWT token.
 2. `POST /authentication/register` - Register a new user.
+
 ---
 
 ```bash
