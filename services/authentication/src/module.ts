@@ -47,9 +47,9 @@ export class AuthenticationModule {
       : DefaultDTO;
 
     options.authenticationField = options.authenticationField || 'email';
-    options.private_key = configService.get<string>('JWT_PRIVATE_KEY', '');
-    options.public_key = configService.get<string>('JWT_PUBLIC_KEY', '');
-    options.token_expiration = configService.get<string>('JWT_EXPIRATION', '1d');
+    options.private_key = options.private_key || configService.get<string>('JWT_PRIVATE_KEY', '');
+    options.public_key = options.public_key || configService.get<string>('JWT_PUBLIC_KEY', '');
+    options.token_expiration = options.token_expiration || configService.get<string>('JWT_EXPIRATION', '1d');
     options.entities = entities;
 
     if (!options.hashingStrategy && !options.hashValidation) {

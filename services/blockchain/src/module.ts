@@ -51,6 +51,9 @@ export class BlockchainModule {
                         whitelist: true,
                         transform: true,
                         forbidNonWhitelisted: true,
+                        transformOptions: {
+                            enableImplicitConversion: true,
+                        },
                     });
                 },
             },

@@ -9,7 +9,7 @@ import {
     Query,
     ParseUUIDPipe,
 } from '@nestjs/common';
-import { TenantService } from '../entities/tenant.entity';
+import { TenantService } from 'service/tenant.service';
 import { CreateTenantDto, UpdateTenantDto } from '../dto/tenant.dto';
 
 @Controller('tenants')
@@ -23,7 +23,7 @@ export class TenantController {
 
     @Get()
     async getAllTenants(@Query('search') search?: string) {
-        return this.tenantService.getAllTenants(search);
+        return this.tenantService.getAllTenants();
     }
 
     @Get(':id')
