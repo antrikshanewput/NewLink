@@ -13,6 +13,7 @@ interface ModuleConfig {
     envVars?: Record<string, string>;
 }
 
+
 const availableModules: ModuleConfig[] = [
     {
         name: 'authentication',
