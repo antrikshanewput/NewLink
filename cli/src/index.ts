@@ -13,8 +13,6 @@ interface ModuleConfig {
     envVars?: Record<string, string>;
 }
 
-// TODO: Add app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true })); to main.ts
-
 const availableModules: ModuleConfig[] = [
     {
         name: 'authentication',
@@ -23,23 +21,6 @@ const availableModules: ModuleConfig[] = [
         moduleRegistration: `AuthenticationModule.register(
           {
             authenticationField: 'phone',
-            registrationFields: ['first_name', 'last_name', 'email', 'phone', 'password', 'username', 'address', 'pincode', 'gender'],
-            roles: ['Admin', 'Editor', 'Viewer'],
-            features: ['Create Post', 'Edit Post', 'View Post'],
-            permissions: [
-              {
-                role: 'Admin',
-                features: ['Create Post', 'Edit Post', 'View Post'],
-              },
-              {
-                role: 'Editor',
-                features: ['Edit Post', 'View Post'],
-              },
-              {
-                role: 'Viewer',
-                features: ['View Post'],
-              },
-            ],
           },
           {
             synchronize: true,
@@ -137,7 +118,7 @@ async function promptSelectedModules(projectType: 'Monolithic' | 'Microservices'
                 type: 'confirm',
                 name: 'confirmModule',
                 message: `${promptMsg} ${module.name}?`,
-                default: module.name === 'authentication',  // default for auth
+                default: module.name === 'authentication',
             },
         ]);
         if (confirmModule) selected.push(module);
@@ -221,8 +202,8 @@ async function implementSwagger(projectPath: string, projectName: string) {
     const cors = `
     app.enableCors({
       origin: '*',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed HTTP methods
-      credentials: true, // If cookies or authentication are required
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', 
+      credentials: true, 
     });
     `;
 
