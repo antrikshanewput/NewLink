@@ -10,7 +10,7 @@
 		"build": "tsc"
 	},
 	"dependencies": {
-		"@nestjs/config": "^3.3.0",
+		"@nestjs/config": "^4.0.0",
 		"@nestjs/throttler": "^6.2.1"
 	},
 	"publishConfig": {

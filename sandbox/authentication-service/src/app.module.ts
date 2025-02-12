@@ -2,12 +2,19 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { NotificationModule } from '@newput-newlink/notification';
+import { AuthenticationModule } from '@newput-newlink/authentication';
 
 @Module({
   imports: [
 ConfigModule.forRoot({ isGlobal: true }),
-NotificationModule.register({})
+AuthenticationModule.register(
+          {
+            authenticationField: 'phone',
+          },
+          {
+            synchronize: true,
+          }
+        )
 ],
   controllers: [AppController],
   providers: [AppService],
