@@ -97,6 +97,27 @@ export class HederaService {
         }
     }
 
+    async getAccountBalanceFromMirrorNode(accountId: string): Promise<string> {
+        try {
+            const endpoint = `${this.mirrorNodeUrl}/api/v1/account/${accountId}`;
+            const response = await axios.get(endpoint);
+            return response.data.balance;
+        } catch (error) {
+            this.logger.error(`Error fetching balance for account ${accountId}:`, error);
+            throw new Error('Failed to fetch account balance from mirror node.');
+        }
+    }
+
+    async getTokenBalanceFromMirrorNode(accountId: string, tokenId: string): Promise<string> {
+        try {
+            const endpoint = `${this.mirrorNodeUrl}/account/balance/${accountId}`;
+            const response = await axios.get(endpoint);
+            return response.data.balance;
+        } catch (error) {
+            this.logger.error(`Error fetching balance for account ${accountId}:`, error);
+            throw new Error('Failed to fetch account balance from mirror node.');
+        }
+    }
     async transferHbar(from: string, to: string, amount: number, privateKey: string): Promise<string> {
         if (amount <= 0) {
             throw new Error('Transfer amount must be greater than zero.');

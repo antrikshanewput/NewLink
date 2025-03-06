@@ -11,14 +11,13 @@
 		"build": "nest build"
 	},
 	"dependencies": {
-		"@hashgraph/sdk": "^2.26.0",
-		"@newput-newlink/authorization": "^1.0.1"
+		"@hashgraph/sdk": "^2.26.0"
 	},
 	"peerDependencies": {
-		"@nestjs/common": "^10.0.0",
-		"@nestjs/config": "^3.3.0",
-		"@nestjs/core": "^10.0.0",
-		"@nestjs/swagger": "^8.1.0"
+		"@nestjs/common": "^11.0.0",
+		"@nestjs/config": "^4.0.0",
+		"@nestjs/core": "^11.0.0",
+		"@nestjs/swagger": "^11.0.0"
 	},
 	"devDependencies": {
 		"ts-loader": "^9.4.3",

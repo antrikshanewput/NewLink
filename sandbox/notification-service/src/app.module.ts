@@ -6,10 +6,10 @@ import { NotificationModule } from '@newput-newlink/notification';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    NotificationModule.register({})
-  ],
+ConfigModule.forRoot({ isGlobal: true }),
+NotificationModule.register({})
+],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
