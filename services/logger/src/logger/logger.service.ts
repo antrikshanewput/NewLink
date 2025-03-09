@@ -1,13 +1,14 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as winston from 'winston';
 import * as consola from 'consola';
-import * as Transport from 'winston-transport';
-import * as GraylogTransport from 'winston-graylog2';
+import TransportStream, * as Transport from 'winston-transport';
+import GraylogTransport from 'winston-graylog2';
 import { LoggerConfig } from './interface/logger-config.interface';
-
+import chalk from 'chalk';
 @Injectable()
 export class LoggerService {
   private logger: any;
+  private timers: Map<string, number> = new Map();
 
   constructor(@Inject('LOGGER_CONFIG') private readonly config: LoggerConfig) {
     this.initializeLogger();
@@ -19,6 +20,9 @@ export class LoggerService {
         this.logger = winston.createLogger({
           level: this.config.level || 'info',
           transports: this.createWinstonTransports(),
+          format: winston.format.printf(({ level, message }) =>
+            this.colorizeLog(level, message),
+          ),
         });
         break;
 
@@ -52,7 +56,7 @@ export class LoggerService {
               },
             ],
           },
-        }),
+        }) as unknown as TransportStream,
       );
     }
 
@@ -83,6 +87,18 @@ export class LoggerService {
     return levels[level] || 3;
   }
 
+  private colorizeLog(level: string, message: any): string {
+    const colorMap: Record<string, (msg: string) => string> = {
+      error: chalk.red.bold,
+      warn: chalk.yellow.bold,
+      info: chalk.blue,
+      debug: chalk.green,
+      trace: chalk.magenta,
+    };
+
+    return colorMap[level] ? colorMap[level](`[${level.toUpperCase()}] ${message}`) : message;
+  }
+
   log(message: string) {
     this.logger.log('info', message);
   }
@@ -97,5 +113,19 @@ export class LoggerService {
 
   debug(message: string) {
     this.logger.debug(message);
+  }
+
+  time(label: string) {
+    this.timers.set(label, Date.now());
+  }
+
+  timeEnd(label: string) {
+    if (this.timers.has(label)) {
+      const duration = Date.now() - this.timers.get(label);
+      this.timers.delete(label);
+      this.logger.info(`Timer '${label}' took ${duration}ms`);
+    } else {
+      this.logger.warn(`No active timer found for label '${label}'`);
+    }
   }
 }

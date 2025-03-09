@@ -21,5 +21,8 @@
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"dependencies": {
+		"logger": "0.0.1"
 	}
 }
