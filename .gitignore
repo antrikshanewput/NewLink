@@ -1,5 +1,7 @@
 # Node modules
 node_modules/
+package-lock.json
+**/package-lock.json
 
 # Logs
 logs/
@@ -47,8 +49,6 @@ Thumbs.db
 # Testing
 coverage/
 *.lcov
-
-# Nest CLI files
 
 # Temporary files and directories
 tmp/
