@@ -94,6 +94,9 @@ export class LoggerService {
       info: chalk.blue,
       debug: chalk.green,
       trace: chalk.magenta,
+      verbose: chalk.cyan,
+      silly: chalk.gray,
+      http: chalk.magenta,
     };
 
     return colorMap[level] ? colorMap[level](`[${level.toUpperCase()}] ${message}`) : message;
@@ -115,6 +118,18 @@ export class LoggerService {
     this.logger.debug(message);
   }
 
+  silly(message: string) {
+    this.logger.silly(message);
+  }
+
+  http(message: string) {
+    this.logger.http(message);
+  }
+
+  verbose(message: string) {
+    this.logger.verbose(message);
+  }
+
   time(label: string) {
     this.timers.set(label, Date.now());
   }
@@ -123,7 +138,7 @@ export class LoggerService {
     if (this.timers.has(label)) {
       const duration = Date.now() - this.timers.get(label);
       this.timers.delete(label);
-      this.logger.info(`Timer '${label}' took ${duration}ms`);
+      this.logger.info(`Method '${label}' took ${duration}ms`);
     } else {
       this.logger.warn(`No active timer found for label '${label}'`);
     }
