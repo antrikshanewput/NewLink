@@ -23,6 +23,7 @@
 		"access": "public"
 	},
 	"dependencies": {
+		"@nestjs/swagger": "^11.0.6",
 		"logger": "0.0.1"
 	}
 }
