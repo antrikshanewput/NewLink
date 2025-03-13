@@ -18,60 +18,107 @@ export class EncryptionMiddleware implements NestMiddleware {
   }
 
   /**
-     * Encrypts data using RSA public key.
-     * Ensures data length is within RSA encryption limits.
-     */
-  encrypt(data: string): string {
-    try {
-      if (Buffer.byteLength(data, 'utf8') > 190) {
-        console.warn('Data is too large for RSA encryption.');
-        throw new Error('Data too large for RSA encryption.');
-      }
-
-      const buffer = Buffer.from(data, 'utf8');
-      const encrypted = crypto.publicEncrypt(
-        {
-          key: this.publicKey,
-          padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        },
-        buffer
-      );
-      console.log('Encryption Successful 😎')
-      return encrypted.toString('base64');
-    } catch (error) {
-      console.error('Encryption error:', error);
-      throw new Error('Encryption failed.');
-    }
+   * Generates a random AES key.
+   */
+  generateAESKey(): Buffer {
+    return crypto.randomBytes(32); // 256-bit key
   }
 
   /**
-   * Decrypts data using RSA private key.
+   * Encrypts data using AES-256-GCM.
    */
-  decrypt(data: string): string {
-    try {
-      const buffer = Buffer.from(data.trim(), 'base64'); // Ensure proper decoding
-      const decrypted = crypto.privateDecrypt(
-        {
-          key: this.privateKey,
-          padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        },
-        buffer
-      );
-      console.log('Decryption Successful 🤩')
-      return decrypted.toString('utf8');
-    } catch (error) {
-      console.error('Decryption error:', error);
-      throw new Error('Decryption failed.');
-    }
+  aesEncrypt(data: string, key: Buffer): { encryptedData: string; iv: string; authTag: string } {
+    const iv = crypto.randomBytes(16); // 128-bit IV
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+
+    let encrypted = cipher.update(data, 'utf8', 'base64');
+    encrypted += cipher.final('base64');
+
+    return {
+      encryptedData: encrypted,
+      iv: iv.toString('base64'),
+      authTag: cipher.getAuthTag().toString('base64'),
+    };
   }
 
-  use(req: Request, res: Response, next: NextFunction) {
-    console.log('Triggered Encryption Middleware');
+  /**
+   * Decrypts data using AES-256-GCM.
+   */
+  aesDecrypt(encryptedData: string, key: Buffer, iv: string, authTag: string): string {
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64'));
+    decipher.setAuthTag(Buffer.from(authTag, 'base64'));
 
-    // Decrypt incoming request body
-    if (req.body.encrypted) {
+    let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
+  }
+
+  /**
+   * Encrypts AES key using RSA public key.
+   */
+  rsaEncryptAESKey(aesKey: Buffer): string {
+    const encryptedKey = crypto.publicEncrypt(
+      {
+        key: this.publicKey,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      },
+      aesKey
+    );
+    return encryptedKey.toString('base64');
+  }
+
+  /**
+   * Decrypts AES key using RSA private key.
+   */
+  rsaDecryptAESKey(encryptedKey: string): Buffer {
+    const decryptedKey = crypto.privateDecrypt(
+      {
+        key: this.privateKey,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      },
+      Buffer.from(encryptedKey, 'base64')
+    );
+    return decryptedKey;
+  }
+
+  /**
+   * Encrypts response using hybrid encryption.
+   */
+  encryptResponse(data: string): object {
+    const aesKey = this.generateAESKey();
+    const { encryptedData, iv, authTag } = this.aesEncrypt(data, aesKey);
+    const encryptedAESKey = this.rsaEncryptAESKey(aesKey);
+
+    return {
+      encryptedAESKey,
+      encryptedData,
+      iv,
+      authTag,
+    };
+  }
+
+  /**
+   * Decrypts incoming request data using hybrid encryption.
+   */
+  decryptRequest(encryptedPayload: any): string {
+    const { encryptedAESKey, encryptedData, iv, authTag } = encryptedPayload;
+
+    const aesKey = this.rsaDecryptAESKey(encryptedAESKey);
+    return this.aesDecrypt(encryptedData, aesKey, iv, authTag);
+  }
+
+  /**
+   * Middleware logic.
+   */
+  use(req: Request, res: Response, next: NextFunction) {
+    console.log('Triggered Hybrid Encryption Middleware');
+
+    // Decrypt incoming request body if encrypted
+    if (req.body.encryptedAESKey) {
       try {
-        req.body = JSON.parse(this.decrypt(req.body.encrypted));
+        const decryptedData = this.decryptRequest(req.body);
+        req.body = JSON.parse(decryptedData);
       } catch (error) {
         console.error('Error decrypting request:', error);
         return res.status(400).json({ message: 'Invalid encrypted data' });
@@ -90,9 +137,8 @@ export class EncryptionMiddleware implements NestMiddleware {
         res.locals.__ALREADY_ENCRYPTED__ = true;
 
         try {
-          const responseString = JSON.stringify(body);
-          const encryptedResponse = this.encrypt(responseString);
-          return originalSend({ encrypted: encryptedResponse });
+          const encryptedResponse = this.encryptResponse(JSON.stringify(body));
+          return originalSend(encryptedResponse);
         } catch (error) {
           console.error('Encryption error:', error);
           return res.status(500).json({ message: 'Encryption error' });

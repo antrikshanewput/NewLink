@@ -1,99 +1,144 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+Encryption Middleware for NestJS 🚀🔒
+Overview
+This module implements Hybrid Encryption in a NestJS middleware, ensuring that all incoming requests are decrypted and outgoing responses are encrypted using a combination of RSA and AES encryption.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+🔹 Features
+✅ Hybrid Encryption (RSA + AES-256-GCM) for speed and security
+✅ Seamless Middleware Integration in NestJS
+✅ Automatic Encryption & Decryption of request/response payloads
+✅ Prevents Recursive Encryption for multiple middleware layers
+✅ Tamper-proof Authentication Tag (authTag) for AES encryption
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+1️⃣ Installation
+First, install the required dependencies:
 
-## Description
+sh
+Copy
+Edit
+npm install crypto
+2️⃣ How It Works
+🔹 Hybrid Encryption (RSA + AES) Flow
+1️⃣ Client-Side Encryption
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Generates a random AES key & IV (Initialization Vector)
+Encrypts the data using AES-256-GCM
+Encrypts the AES key using RSA Public Key
+Sends { encryptedData, iv, authTag, encryptedAESKey } in the request
+2️⃣ Middleware Decryption (Server-Side)
 
-## Project setup
+Decrypts the AES key using RSA Private Key
+Uses the AES key to decrypt encryptedData
+Ensures integrity using authTag
+Processes the decrypted request
+3️⃣ Server-Side Response Encryption
 
-```bash
-$ npm install
-```
+Generates a new AES key & IV
+Encrypts the response with AES-256-GCM
+Encrypts the AES key using RSA Public Key
+Sends { encryptedData, iv, authTag, encryptedAESKey } back to the client
+3️⃣ Middleware Usage
+📌 Step 1: Register Middleware
+In your app.module.ts, apply the middleware globally:
 
-## Compile and run the project
+ts
+Copy
+Edit
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { EncryptionMiddleware } from './encryption.middleware';
 
-```bash
-# development
-$ npm run start
+@Module({})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(EncryptionMiddleware).forRoutes('*'); // Apply to all routes
+  }
+}
+4️⃣ Configuration
+📌 Step 2: Provide RSA Keys
+Your RSA keys must be stored securely. Configure them in an environment file or pass them dynamically:
 
-# watch mode
-$ npm run start:dev
+ts
+Copy
+Edit
+{
+  rsaConfig: {
+    privateKey: process.env.RSA_PRIVATE_KEY,  // Keep this secret
+    publicKey: process.env.RSA_PUBLIC_KEY     // Used for encryption
+  }
+}
+5️⃣ Encryption & Decryption Logic
+📌 Encrypting Data (AES + RSA)
+ts
+Copy
+Edit
+encryptData(data: string): { encryptedData: string; iv: string; authTag: string; encryptedAESKey: string } {
+  const aesKey = crypto.randomBytes(32); // AES-256 key
+  const iv = crypto.randomBytes(16); // IV for AES-GCM
 
-# production mode
-$ npm run start:prod
-```
+  const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv);
+  let encrypted = cipher.update(data, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
 
-## Run tests
+  const encryptedAESKey = crypto.publicEncrypt(
+    {
+      key: this.publicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+    },
+    aesKey
+  );
 
-```bash
-# unit tests
-$ npm run test
+  return {
+    encryptedData: encrypted,
+    iv: iv.toString('base64'),
+    authTag: cipher.getAuthTag().toString('base64'),
+    encryptedAESKey: encryptedAESKey.toString('base64')
+  };
+}
+📌 Decrypting Data (RSA + AES)
+ts
+Copy
+Edit
+decryptData(encryptedPayload: { encryptedData: string; iv: string; authTag: string; encryptedAESKey: string }): string {
+  const { encryptedData, iv, authTag, encryptedAESKey } = encryptedPayload;
 
-# e2e tests
-$ npm run test:e2e
+  const decryptedAESKey = crypto.privateDecrypt(
+    {
+      key: this.privateKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+    },
+    Buffer.from(encryptedAESKey, 'base64')
+  );
 
-# test coverage
-$ npm run test:cov
-```
+  const decipher = crypto.createDecipheriv('aes-256-gcm', decryptedAESKey, Buffer.from(iv, 'base64'));
+  decipher.setAuthTag(Buffer.from(authTag, 'base64'));
 
-## Deployment
+  let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+  decrypted += decipher.final('utf8');
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+  return decrypted;
+}
+6️⃣ Example Request & Response Format
+📌 Encrypted Request (Client to Server)
+json
+Copy
+Edit
+{
+  "encryptedData": "mYF83Vh+...",
+  "iv": "sdfu8JKo...",
+  "authTag": "0gA6X9ft...",
+  "encryptedAESKey": "L2mp5JTo..."
+}
+📌 Encrypted Response (Server to Client)
+json
+Copy
+Edit
+{
+  "encryptedData": "mR4T3Dd+...",
+  "iv": "Kjs73Dpd...",
+  "authTag": "1qX9H2ba...",
+  "encryptedAESKey": "R2nd7LPo..."
+}
+7️⃣ Security Best Practices ✅
+🔐 Keep the RSA private key secure (never expose it in frontend or logs).
+🔑 Rotate AES keys periodically to enhance security.
+⚠️ Validate decrypted data before processing to avoid attacks.
+📌 Store encryption logs securely to debug potential failures.
