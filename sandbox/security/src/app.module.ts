@@ -72,8 +72,8 @@ pP1y0te4+N48b/n5uJ8Xc6JDQTEyDicr3DH1BMukFv+v5Nxp3yLYX3N2zdGV
 @Module({
   imports: [
     SecurityModule.register({
-      xssProtection: false,
-      sqlInjectionProtection: false,
+      xssProtection: true,
+      sqlInjectionProtection: true,
       enableRateLimiter: false,
       enableCsrfProtection: false,
       rateLimiter: {

@@ -8,6 +8,11 @@ export class EncryptionMiddleware implements NestMiddleware {
   private privateKey: string;
   private publicKey: string;
 
+  // Store browser public keys mapped to session IDs with expiration
+  private browserPublicKeys: Map<string, { key: string; timestamp: number }> = new Map();
+  private EXPIRY_TIME_MS = 1 * 60 * 1000; // 15 minutes expiry
+  private CLEANUP_INTERVAL_MS = 1 * 60 * 1000; // Cleanup every  minutes
+
   constructor(@Inject('SECURITY_OPTIONS') private readonly options: SecurityOptions) {
     this.privateKey = this.options.rsaConfig.privateKey;
     this.publicKey = this.options.rsaConfig.publicKey;
@@ -15,19 +20,35 @@ export class EncryptionMiddleware implements NestMiddleware {
     if (!this.privateKey || !this.publicKey) {
       throw new Error('RSA keys are not configured properly.');
     }
+
+    // Start automatic cleanup for expired keys
+    setInterval(() => this.cleanupExpiredKeys(), this.CLEANUP_INTERVAL_MS);
   }
 
   /**
-   * Generates a random AES key.
+   * Remove expired browser keys from memory.
    */
-  generateAESKey(): Buffer {
-    return crypto.randomBytes(32); // 256-bit key
+  private cleanupExpiredKeys() {
+    const now = Date.now();
+    this.browserPublicKeys.forEach((value, sessionId) => {
+      if (now - value.timestamp > this.EXPIRY_TIME_MS) {
+        this.browserPublicKeys.delete(sessionId);
+        console.log(`🔹 Removed expired key for session: ${sessionId}`);
+      }
+    });
+  }
+
+  /**
+   * Generates a random AES key (256-bit).
+   */
+  private generateAESKey(): Buffer {
+    return crypto.randomBytes(32);
   }
 
   /**
    * Encrypts data using AES-256-GCM.
    */
-  aesEncrypt(data: string, key: Buffer): { encryptedData: string; iv: string; authTag: string } {
+  private aesEncrypt(data: string, key: Buffer): { encryptedData: string; iv: string; authTag: string } {
     const iv = crypto.randomBytes(16); // 128-bit IV
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
@@ -44,7 +65,7 @@ export class EncryptionMiddleware implements NestMiddleware {
   /**
    * Decrypts data using AES-256-GCM.
    */
-  aesDecrypt(encryptedData: string, key: Buffer, iv: string, authTag: string): string {
+  private aesDecrypt(encryptedData: string, key: Buffer, iv: string, authTag: string): string {
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64'));
     decipher.setAuthTag(Buffer.from(authTag, 'base64'));
 
@@ -57,10 +78,10 @@ export class EncryptionMiddleware implements NestMiddleware {
   /**
    * Encrypts AES key using RSA public key.
    */
-  rsaEncryptAESKey(aesKey: Buffer): string {
+  private rsaEncryptAESKey(aesKey: Buffer, browserPublicKey: string): string {
     const encryptedKey = crypto.publicEncrypt(
       {
-        key: this.publicKey,
+        key: browserPublicKey,
         padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
       },
       aesKey
@@ -71,7 +92,7 @@ export class EncryptionMiddleware implements NestMiddleware {
   /**
    * Decrypts AES key using RSA private key.
    */
-  rsaDecryptAESKey(encryptedKey: string): Buffer {
+  private rsaDecryptAESKey(encryptedKey: string): Buffer {
     const decryptedKey = crypto.privateDecrypt(
       {
         key: this.privateKey,
@@ -85,10 +106,10 @@ export class EncryptionMiddleware implements NestMiddleware {
   /**
    * Encrypts response using hybrid encryption.
    */
-  encryptResponse(data: string): object {
+  private encryptResponse(data: string, browserPublicKey: string): object {
     const aesKey = this.generateAESKey();
     const { encryptedData, iv, authTag } = this.aesEncrypt(data, aesKey);
-    const encryptedAESKey = this.rsaEncryptAESKey(aesKey);
+    const encryptedAESKey = this.rsaEncryptAESKey(aesKey, browserPublicKey);
 
     return {
       encryptedAESKey,
@@ -101,7 +122,7 @@ export class EncryptionMiddleware implements NestMiddleware {
   /**
    * Decrypts incoming request data using hybrid encryption.
    */
-  decryptRequest(encryptedPayload: any): string {
+  private decryptRequest(encryptedPayload: any): string {
     const { encryptedAESKey, encryptedData, iv, authTag } = encryptedPayload;
 
     const aesKey = this.rsaDecryptAESKey(encryptedAESKey);
@@ -112,7 +133,27 @@ export class EncryptionMiddleware implements NestMiddleware {
    * Middleware logic.
    */
   use(req: Request, res: Response, next: NextFunction) {
-    console.log('Triggered Hybrid Encryption Middleware');
+    console.log('🔹 Triggered Hybrid Encryption Middleware');
+
+    const sessionId = req.headers['session-id'] as string;
+    if (!sessionId) {
+      return res.status(400).json({ message: 'Missing session-id header' });
+    }
+
+    console.log(this.browserPublicKeys)
+    // Store browser's public key (if provided)
+    if (req.headers['browser-public-key']) {
+      this.browserPublicKeys.set(sessionId, {
+        key: Buffer.from(req.headers['browser-public-key'] as string, 'base64').toString(),
+        timestamp: Date.now(),
+      });
+    }
+
+    // Retrieve browser public key
+    const browserPublicKey = this.browserPublicKeys.get(sessionId)?.key;
+    if (!browserPublicKey) {
+      return res.status(400).json({ message: 'Invalid or expired session. Please send your public key again.' });
+    }
 
     // Decrypt incoming request body if encrypted
     if (req.body.encryptedAESKey) {
@@ -120,7 +161,7 @@ export class EncryptionMiddleware implements NestMiddleware {
         const decryptedData = this.decryptRequest(req.body);
         req.body = JSON.parse(decryptedData);
       } catch (error) {
-        console.error('Error decrypting request:', error);
+        console.error('❌ Error decrypting request:', error);
         return res.status(400).json({ message: 'Invalid encrypted data' });
       }
     }
@@ -137,10 +178,10 @@ export class EncryptionMiddleware implements NestMiddleware {
         res.locals.__ALREADY_ENCRYPTED__ = true;
 
         try {
-          const encryptedResponse = this.encryptResponse(JSON.stringify(body));
+          const encryptedResponse = this.encryptResponse(JSON.stringify(body), browserPublicKey);
           return originalSend(encryptedResponse);
         } catch (error) {
-          console.error('Encryption error:', error);
+          console.error('❌ Encryption error:', error);
           return res.status(500).json({ message: 'Encryption error' });
         }
       };

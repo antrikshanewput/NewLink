@@ -24,6 +24,13 @@ export class XssMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     try {
+      if (typeof req.body === 'string') {
+        try {
+          req.body = JSON.parse(req.body);
+        } catch (e) {
+          console.error('❌ Failed to parse JSON body:', e);
+        }
+      }
       this.checkForXss(req.query, 'Query Params');
       this.checkForXss(req.body, 'Request Body');
       this.checkForXss(req.params, 'URL Params');

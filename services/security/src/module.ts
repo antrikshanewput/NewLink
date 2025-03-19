@@ -70,20 +70,24 @@ export class SecurityModule implements NestModule {
 
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(cookieParser()).forRoutes('*');
-    if(this.options?.useEncryption) {
-      consumer.apply(EncryptionMiddleware).forRoutes('*');
+    const middlewares = [];
+
+    if (this.options?.useEncryption) {
+      middlewares.push(EncryptionMiddleware);
     }
     if (this.options?.xssProtection) {
-      consumer.apply(XssMiddleware).forRoutes('*');
+      middlewares.push(XssMiddleware);
     }
     if (this.options?.sqlInjectionProtection) {
-      consumer.apply(SqlInjectionMiddleware).forRoutes('*');
+      middlewares.push(SqlInjectionMiddleware);
     }
     if (this.options?.enableRateLimiter) {
-      consumer.apply(RateLimitMiddleware).forRoutes('*');
+      middlewares.push(RateLimitMiddleware);
     }
     if (this.options?.enableCsrfProtection) {
-      consumer.apply(CsrfMiddleware).forRoutes('*');
+      middlewares.push(CsrfMiddleware);
     }
+    
+    consumer.apply(...middlewares).forRoutes('*');
   }
 }
