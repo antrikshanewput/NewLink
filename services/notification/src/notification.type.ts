@@ -16,6 +16,8 @@ export interface NotificationModuleOptions {
         authId?: string;
         authToken?: string;
         from?: string;
+        whatsappFrom?: string;
+        whatsappTemplate: string;
     };
     dto?: ProviderDtoType[];
 }
