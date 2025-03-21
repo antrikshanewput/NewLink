@@ -24,4 +24,11 @@ export class NotificationController {
 		await this.plivoService.sendSms(dst, text);
 		return { message: 'SMS sent successfully!' };
 	}
+
+  @Post('whatsapp')
+	async sendViaWhatsapp(@Body() sms: InstanceType<typeof this.SmsDTO>): Promise<{ message: string }> {
+		const { dst, text } = sms as typeof this.SmsDTO;
+		await this.plivoService.sendWhatsApp(dst, text);
+		return { message: 'WhatsApp SMS sent successfully!' };
+	}
 }

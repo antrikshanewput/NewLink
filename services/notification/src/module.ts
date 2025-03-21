@@ -105,6 +105,14 @@ export class NotificationModule {
 				provide: 'PLIVO_FROM_NUMBER',
 				useValue: options.sms.from,
 			});
+      providers.push({
+				provide: 'PLIVO_WHATSAPP_FROM_NUMBER',
+				useValue: options.sms.whatsappFrom,
+			});
+      providers.push({
+				provide: 'PLIVO_WHATSAPP_TEMPLATE',
+				useValue: options.sms.whatsappTemplate,
+			});
 			providers.push(PlivoService);
 			exports.push(PlivoService);
 		}
