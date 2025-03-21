@@ -13,10 +13,17 @@ export interface NewRelicConfig {
   ssl: boolean;
 }
 
+interface ProviderDtoType {
+  provide: string;
+  useValue: any;
+}
+
 export interface LoggerConfig {
   type: LoggerType;
   transports: TransportType[];
   level?: string;
   graylog?: GraylogConfig;
+  entities?: Function[];
   newrelic?: NewRelicConfig;
+  dto?: ProviderDtoType[];
 }
