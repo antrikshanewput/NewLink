@@ -1,6 +1,6 @@
 {
 	"name": "@newput-newlink/tenant",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -10,7 +10,6 @@
 		"build:dev": "nest build && npm link",
 		"build": "nest build"
 	},
-	"dependencies": {},
 	"peerDependencies": {
 		"@nestjs/common": "^11.0.0",
 		"@nestjs/core": "^11.0.0"
@@ -24,5 +23,6 @@
 	},
 	"publishConfig": {
 		"access": "public"
-	}
+	},
+	"gitHead": "c60625a55628d9f15eff2cd42aac5e688f580867"
 }

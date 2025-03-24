@@ -1,6 +1,6 @@
 {
 	"name": "@newput-newlink/monorepo",
-	"version": "1.0.0",
+	"version": "1.0.5",
 	"private": false,
 	"workspaces": [
 		"cli",
@@ -13,10 +13,22 @@
 		"build:dev": "lerna run build:dev",
 		"clean": "lerna exec -- rm -rf dist",
 		"rebuild": "npm run clean && npm run build",
-		"publish": "lerna publish"
+		"publish": "lerna publish",
+		"publish-patch": "lerna publish patch --no-verify-access --no-git-tag-version --force-git-tag",
+		"version:patch": "lerna version patch --conventional-commits --yes",
+		"version:minor": "lerna version minor --conventional-commits --yes",
+		"version:major": "lerna version major --conventional-commits --yes"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^19.8.0",
+		"@commitlint/config-conventional": "^19.8.0",
+		"@commitlint/config-lerna-scopes": "19.7.0",
 		"@nestjs/cli": "^10.4.9",
+		"@types/node": "^22.13.13",
+		"commitizen": "^4.3.1",
+		"cz-conventional-changelog": "^3.3.0",
+		"cz-customizable": "^7.4.0",
+		"husky": "^9.1.7",
 		"lerna": "^8.1.9"
 	},
 	"publishConfig": {
@@ -25,5 +37,13 @@
 	"dependencies": {
 		"@nestjs/swagger": "^11.0.6",
 		"logger": "0.0.1"
+	},
+	"config": {
+		"commitizen": {
+			"path": "node_modules/cz-customizable"
+		},
+		"cz-customizable": {
+			"config": ".cz-config.ts"
+		}
 	}
 }
