@@ -1,6 +1,6 @@
 {
 	"name": "@newput-newlink/authentication",
-	"version": "1.0.3",
+	"version": "1.1.1",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
@@ -26,8 +26,8 @@
 		"@nestjs/core": "^11.0.0",
 		"@nestjs/jwt": "^11.0.0",
 		"@nestjs/passport": "^11.0.0",
-		"@nestjs/typeorm": "^11.0.0",
 		"@nestjs/swagger": "^11.0.0",
+		"@nestjs/typeorm": "^11.0.0",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.14.1"
 	},
@@ -40,5 +40,6 @@
 	},
 	"publishConfig": {
 		"access": "public"
-	}
+	},
+	"gitHead": "c60625a55628d9f15eff2cd42aac5e688f580867"
 }

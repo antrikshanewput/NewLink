@@ -1,6 +1,6 @@
 {
 	"name": "@newput-newlink/monorepo",
-	"version": "1.0.0",
+	"version": "1.0.4",
 	"private": false,
 	"workspaces": [
 		"cli",
@@ -13,16 +13,17 @@
 		"build:dev": "lerna run build:dev",
 		"clean": "lerna exec -- rm -rf dist",
 		"rebuild": "npm run clean && npm run build",
-		"publish": "lerna publish"
+		"publish": "lerna publish",
+		"publish-patch": "lerna publish patch --no-verify-access --no-git-tag-version --force-git-tag"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^16.1.0",
-		"@commitlint/config-conventional": "^16.0.0",
-		"@commitlint/config-lerna-scopes": "^16.0.0",
-		"commitizen": "^4.2.4",
+		"@commitlint/cli": "^19.8.0",
+		"@commitlint/config-conventional": "^19.8.0",
+		"@commitlint/config-lerna-scopes": "19.7.0",
+		"commitizen": "4.3.1",
 		"cz-conventional-changelog": "^3.3.0",
-		"cz-customizable": "^6.3.0",
-		"husky": "^7.0.4",
+		"cz-customizable": "7.4.0",
+		"husky": "9.1.7",
 		"@nestjs/cli": "^10.4.9",
 		"lerna": "^8.1.9"
 	},
