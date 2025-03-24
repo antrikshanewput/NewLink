@@ -1,5 +1,24 @@
 {
 	"version": "independent",
 	"npmClient": "npm",
-	"packages": ["cli", "common/*", "services/*"]
+	"packages": ["cli", "common/*", "services/*"],
+	"command": {
+		"bootstrap": {
+			"concurrency": 4,
+			"forceLocal": true
+		},
+		"version": {
+			"conventionalCommits": true,
+			"message": "chore(release): publish"
+		},
+		"run": {
+			"concurrency": 3
+		},
+		"clean": {
+			"loglevel": "silent",
+			"concurrency": 8,
+			"yes": true
+		}
+	},
+	"ignoreChanges": ["**/__fixtures__/**", "**/__tests__/**", "**/*.md"]
 }
