@@ -25,7 +25,7 @@ module.exports = {
 	],
 
 	scopes: [
-		{ name: 'mono-repo' },
+		{ name: 'newlink' },
 		{ name: 'authentication-service' },
 		{ name: 'authorization-service' },
 		{ name: 'notification-service' },
@@ -33,6 +33,7 @@ module.exports = {
 		{ name: 'notification-service' },
 		{ name: 'logger-service' },
 		{ name: 'security-service' },
+		{ name: 'database-module' },
 	],
 
 	appendBranchNameToCommitMessage: false,

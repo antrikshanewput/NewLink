@@ -1,6 +1,1 @@
-# Skip running commitizen for --amend
-if [ "$2" != "message" ] && [ "$2" != "template" ]; then
-  exit 0
-fi
-
 exec < /dev/tty && npx cz --hook || true
