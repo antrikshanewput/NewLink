@@ -1,14 +1,13 @@
+// authentication.module.ts
 import { DynamicModule, Global, Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
 
 import { EntityRegistry } from 'entities';
 import { OtpVerification } from 'entities/otp-verification.entity';
-import { BaseUser } from 'entities/user.entity';
+import { User } from 'entities/user.entity';
 import { AuthenticationService } from 'services/authentication.service';
 import { UserService } from 'services/user.service';
 
@@ -22,17 +21,18 @@ import { DatabaseOptionsType } from 'database.types';
 
 import { DefaultDTO } from 'dto';
 
+import { DatabaseModule } from '@newput-newlink/database';
+
 @Global()
 @Module({})
 export class AuthenticationModule {
 	static async resolveConfig(options: AuthenticationOptionsType, configService: ConfigService): Promise<AuthenticationOptionsType> {
-		const entities = [BaseUser, OtpVerification].map((entity) => {
-			return options.entities?.find((optionsEntity) => optionsEntity.name === (entity.name === 'BaseUser' ? 'User' : entity.name)) || entity;
+		const entities = [User, OtpVerification].map((entity) => {
+			return options.entities?.find((optionsEntity) => optionsEntity.name === entity.name) || entity;
 		});
 
 		entities!.forEach((entity) => {
-			const alias = entity.name === 'BaseUser' ? 'User' : entity.name;
-			EntityRegistry.registerEntity(alias, entity);
+			EntityRegistry.registerEntity(entity.name, entity);
 		});
 
 		options.dto = options.dto
@@ -59,22 +59,10 @@ export class AuthenticationModule {
 		return options;
 	}
 
-	static async resolveDatabaseConfig(database: DatabaseOptionsType, configService: ConfigService, config: AuthenticationOptionsType): Promise<TypeOrmModuleOptions> {
-		return {
-			type: (database.type || configService.get<string>('AUTH_DB_TYPE') || configService.get<string>('DB_TYPE', 'postgres')) as DatabaseOptionsType['type'],
-			host: database.host || configService.get<string>('AUTH_DB_HOST') || configService.get<string>('DB_HOST', 'localhost'),
-			port: (database.port || configService.get<number>('AUTH_DB_PORT') || configService.get<number>('DB_PORT', 5432)) as number,
-			username: database.username || configService.get<string>('AUTH_DB_USERNAME') || configService.get<string>('DB_USERNAME', 'postgres'),
-			password: database.password || configService.get<string>('AUTH_DB_PASSWORD') || configService.get<string>('DB_PASSWORD', 'postgres'),
-			database: database.database || configService.get<string>('AUTH_DB_NAME') || configService.get<string>('DB_NAME', 'postgres'),
-			entities: config.entities!,
-			synchronize: database.synchronize ?? configService.get<boolean>('DB_SYNCHRONIZE', false) ?? false,
-			autoLoadEntities: true,
-		} as TypeOrmModuleOptions;
-	}
-
-	static async register(configuration: AuthenticationOptionsType, db: DatabaseOptionsType = {}): Promise<DynamicModule> {
+	static async register(configuration: AuthenticationOptionsType, database: DatabaseOptionsType = {}): Promise<DynamicModule> {
 		const config = await this.resolveConfig(configuration, new ConfigService());
+		// Create a database module dynamically
+		const databaseModule = DatabaseModule.register(database, config.entities);
 
 		const imports = [
 			ConfigModule.forRoot({ isGlobal: true }),
@@ -82,27 +70,18 @@ export class AuthenticationModule {
 			JwtModule.registerAsync({
 				useFactory: () => ({
 					secret: config.private_key,
-					signOptions: { expiresIn: config.token_expiration },
+					signOptions: { expiresIn: Number(config.token_expiration) },
 				}),
 			}),
-			TypeOrmModule.forRootAsync({
-				imports: [ConfigModule],
-				inject: [ConfigService],
-				useFactory: async (configService: ConfigService) => await this.resolveDatabaseConfig(db, configService, config),
-			}),
-			TypeOrmModule.forFeature(config.entities!),
+			databaseModule,
 		];
 
+		// Base providers that are needed regardless of database type
 		const providers = [
 			{
 				provide: 'AUTHENTICATION_OPTIONS',
 				useValue: config,
 			},
-			...config.entities!.map((entity) => ({
-				provide: `${entity.name === 'BaseUser' ? 'USER' : entity.name.toUpperCase()}_REPOSITORY`,
-				useFactory: (dataSource: DataSource) => dataSource.getRepository(entity),
-				inject: [DataSource],
-			})),
 			{
 				provide: APP_PIPE,
 				useFactory: () => {
@@ -123,8 +102,7 @@ export class AuthenticationModule {
 		];
 
 		const controllers = [AuthController, UserController];
-
-		const exports = [AuthenticationService, UserService, TypeOrmModule];
+		const exports = [AuthenticationService, UserService];
 
 		return {
 			module: AuthenticationModule,

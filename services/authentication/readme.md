@@ -6,19 +6,19 @@ The Authentication module is a secure and scalable solution for handling user au
 
 ## Features
 
-1. **JWT Authentication**  
+1. **JWT Authentication**
    Secure token-based authentication for users.
 
-2. **Password Encryption**  
+2. **Password Encryption**
    Automatically hash and store passwords securely.
 
-3. **User Registration**  
+3. **User Registration**
    Easy-to-use methods for registering new users.
 
-4. **Session Management**  
+4. **Session Management**
    Manage user sessions with built-in tools.
 
-5. **Extensible**  
+5. **Extensible**
    Integrates seamlessly with other Newlink modules, such as Authorization and Notification.
 
 ---
@@ -79,6 +79,7 @@ The Authentication module requires several environment variables for proper conf
 | `JWT_EXPIRATION`      | No       | JWT expiration time in seconds       | `3600`      |
 | `OAUTH_CLIENT_ID`     | No       | Client ID for OAuth integrations     | None        |
 | `OAUTH_CLIENT_SECRET` | No       | Client Secret for OAuth integrations | None        |
+| `DB_TYPE`             | Yes      | Database Type                        | `postgres`  |
 | `DB_HOST`             | Yes      | Database host                        | `localhost` |
 | `DB_PORT`             | No       | Database port                        | `5432`      |
 | `DB_USERNAME`         | Yes      | Database username                    | None        |
