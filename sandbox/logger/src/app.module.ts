@@ -17,6 +17,9 @@ import { LoggerModule } from '@newput-newlink/logger';
         host: 'localhost',
         port: 12201,
       },
+      dbaudit: {
+        enableAudit: true
+      },
     }),
   ],
   controllers: [AppController],

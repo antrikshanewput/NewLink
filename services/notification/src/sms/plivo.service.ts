@@ -36,12 +36,8 @@ export class PlivoService {
       ]
     };
   
-    const response = await this.client.messages.create({
-      src: this.whatsapp_from_number,
-      dst,
-      type: 'whatsapp',
-      template: template,
-    });
+    const response = await this.client.messages.create(this.whatsapp_from_number, dst, text, { type: 'whatsapp',
+      template: template, });
 
     console.log('WhatsApp response:', response);
     return response;

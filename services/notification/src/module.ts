@@ -28,6 +28,7 @@ export class NotificationModule {
 			authId: configService.get('PLIVO_AUTH_ID', ''),
 			authToken: configService.get('PLIVO_AUTH_TOKEN', ''),
 			from: configService.get('PLIVO_FROM_NUMBER', ''),
+      whatsappTemplate: configService.get('PLIVO_WHATSAPP_TEMPLATE', '')
 		};
 
 		if (options.email.host && (!options.email.user || !options.email.pass)) {
